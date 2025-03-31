@@ -14,6 +14,14 @@ set(GCC_COVERAGE_COMPILE_FLAGS "--coverage -O0 -fprofile-arcs -ftest-coverage -f
 set(GCC_COVERAGE_LINK_FLAGS "-lgcov")
 set(KSTD_COMPILER_FLAGS "")
 
+find_package(spdlog)
+find_package(fmt)
+find_package(GTest)
+find_package(benchmark)
+find_package(Boost)
+find_package(nlohmann_json)
+
+set(KSTD_LIBS spdlog::spdlog fmt::fmt gtest::gtest benchmark::benchmark_main boost::boost nlohmann_json::nlohmann_json)
 
 option(KSTD_ENABLE_UNIT_TESTS "Build unit tests" OFF)
 option(KSTD_ENABLE_BENCHMARKS "Build benchmakrs " OFF)
@@ -34,4 +42,5 @@ if(KSTD_ENABLE_UNIT_TESTS)
     enable_testing()
 endif()
 
-add_subdirectory(src/kstd)
+add_subdirectory(src)
+add_subdirectory(examples)
