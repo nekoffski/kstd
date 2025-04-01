@@ -6,6 +6,7 @@
 #include <source_location>
 
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
 namespace kstd::log {
