@@ -99,4 +99,43 @@ void expect(bool condition, detail::FormatWithLocation fmt, Args&&... args) {
     }
 }
 
+namespace internal {
+
+template <typename... Args>
+void debug(detail::FormatWithLocation fmt, Args&&... args) {
+#ifdef KSTD_ENABLE_INTERNAL_LOGGING
+    log::debug(std::move(fmt), std::forward<Args>(args)...);
+#endif
+}
+
+template <typename... Args>
+void error(detail::FormatWithLocation fmt, Args&&... args) {
+#ifdef KSTD_ENABLE_INTERNAL_LOGGING
+    log::error(std::move(fmt), std::forward<Args>(args)...);
+#endif
+}
+
+template <typename... Args>
+void info(detail::FormatWithLocation fmt, Args&&... args) {
+#ifdef KSTD_ENABLE_INTERNAL_LOGGING
+    log::info(std::move(fmt), std::forward<Args>(args)...);
+#endif
+}
+
+template <typename... Args>
+void trace(detail::FormatWithLocation fmt, Args&&... args) {
+#ifdef KSTD_ENABLE_INTERNAL_LOGGING
+    log::trace(std::move(fmt), std::forward<Args>(args)...);
+#endif
+}
+
+template <typename... Args>
+void warn(detail::FormatWithLocation fmt, Args&&... args) {
+#ifdef KSTD_ENABLE_INTERNAL_LOGGING
+    log::warn(std::move(fmt), std::forward<Args>(args)...);
+#endif
+}
+
+}  // namespace internal
+
 }  // namespace kstd::log

@@ -17,25 +17,23 @@ set(KSTD_INCLUDE
 # set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 # set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 
-add_definitions(-DKSTD_ENABLE_LOGGING=1)
+add_definitions(-DKSTD_ENABLE_INTERNAL_LOGGING=1)
 
 set(GCC_COVERAGE_COMPILE_FLAGS 
     "--coverage -O0 -fprofile-arcs -ftest-coverage -fno-elide-constructors -fno-inline")
 set(GCC_COVERAGE_LINK_FLAGS "-lgcov")
 set(KSTD_COMPILER_FLAGS "")
 
-find_package(spdlog)
-find_package(fmt)
-find_package(GTest)
-find_package(benchmark)
-find_package(Boost)
-find_package(nlohmann_json)
+find_package(spdlog CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
+find_package(benchmark CONFIG REQUIRED)
+find_package(Boost CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 set(KSTD_LIBS spdlog::spdlog fmt::fmt gtest::gtest benchmark::benchmark_main 
     boost::boost nlohmann_json::nlohmann_json)
 
-option(KSTD_ENABLE_UNIT_TESTS "Build unit tests" OFF)
-option(KSTD_ENABLE_BENCHMARKS "Build benchmakrs " OFF)
 option(KSTD_ENABLE_COVERAGE "Enable code coverage" OFF)
 
 if(KSTD_ENABLE_COVERAGE)
@@ -49,12 +47,12 @@ endif()
 
 set(KSTD_COMPILER_FLAGS -Wall -Wextra -Wpedantic -Werror)
 
-if(KSTD_ENABLE_UNIT_TESTS)
-    enable_testing()
-endif()
+add_subdirectory(src)
+add_subdirectory(examples)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/examples)
+enable_testing()
+add_subdirectory(test)
+add_subdirectory(benchmark)
 
 file(GLOB_RECURSE HEADERS "${KSTD_INCLUDE}/*.hh")
 

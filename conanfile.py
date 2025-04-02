@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
 
@@ -22,7 +24,7 @@ class Recipe(ConanFile):
     options = {"shared": [True, False], "fPIC": [True, False]}
     default_options = {"shared": False, "fPIC": False}
 
-    exports_sources = "CMakeLists.txt", "src/*", "examples/*"
+    exports_sources = "CMakeLists.txt", "src/*", "examples/*", "test/*", "benchmark/*"
 
     def requirements(self):
         for requirement in requirements:
@@ -42,9 +44,20 @@ class Recipe(ConanFile):
         cmake.configure()
         cmake.build()
 
+        self.test()
+        self.benchmark()
+
     def package(self):
         cmake = CMake(self)
         cmake.install()
+
+    def test(self):
+        self.output.info("Running tests...")
+        self.run('ctest -VV --output-on-failure')
+
+    def benchmark(self):
+        self.output.info("Running benchmarks...")
+        self.run("benchmark/kstd.benchmark")
 
     def package_info(self):
         self.cpp_info.libs = ["kstd"]
