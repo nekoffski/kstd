@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from conan import ConanFile
@@ -45,7 +46,8 @@ class Recipe(ConanFile):
         cmake.build()
 
         self.test()
-        self.benchmark()
+        if bool(os.getenv("KSTD_RUN_BENCHMARKS", 0)):
+            self.benchmark()
 
     def package(self):
         cmake = CMake(self)

@@ -9,26 +9,6 @@ struct Foo {
     kstd::u64 z;
 };
 
-// // Example function to benchmark
-// static void BM_Factorial(benchmark::State& state) {
-//     for (auto _ : state) {
-//         int result = 1;
-//         for (int i = 1; i <= 10; ++i) {
-//             result *= i;
-//         }
-//         benchmark::DoNotOptimize(result);  // Prevent optimization of the result
-//     }
-// }
-
-// // Another example: Sorting a small array
-// static void BM_SortArray(benchmark::State& state) {
-//     std::vector<int> vec = { 10, 2, 34, 12, 5, 7 };
-//     for (auto _ : state) {
-//         std::sort(vec.begin(), vec.end());
-//         benchmark::DoNotOptimize(vec);  // Prevent optimization of the result
-//     }
-// }
-
 static void allocateIterateDeallocate(
   kstd::Allocator& allocator, benchmark::State& state
 ) {
