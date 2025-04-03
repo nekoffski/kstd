@@ -9,6 +9,7 @@
 namespace kstd {
 
 enum class AllocatorReportStrategy : u8 { enabled, disabled };
+enum class AllocatorFailureStrategy : u8 { returnNull, throwException, panic };
 
 struct Allocator {
     virtual ~Allocator() = default;
