@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(kstd CXX)
 
+SET(KSTD_ENABLE_COVERAGE OFF CACHE BOOL "Coverage option")
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE Debug)
 
@@ -10,7 +12,6 @@ set(KSTD_INCLUDE
     ${spdlog_INCLUDE_DIRS}
     ${gtest_INCLUDE_DIRS}
     ${benchmark_INCLUDE_DIRS}
-    ${boost_INCLUDE_DIRS}
     ${nlohmann_json_INCLUDE_DIRS}
 )
 
@@ -28,13 +29,10 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(GTest CONFIG REQUIRED)
 find_package(benchmark CONFIG REQUIRED)
-find_package(Boost CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
 set(KSTD_LIBS spdlog::spdlog fmt::fmt gtest::gtest benchmark::benchmark_main 
-    boost::boost nlohmann_json::nlohmann_json)
-
-option(KSTD_ENABLE_COVERAGE "Enable code coverage" OFF)
+    nlohmann_json::nlohmann_json)
 
 if(KSTD_ENABLE_COVERAGE)
     message("-- Triggering build with coverage support")
@@ -42,6 +40,7 @@ if(KSTD_ENABLE_COVERAGE)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}")
     string(REPLACE "-O3" "" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
 else()
+    message ("-- Coverage disabled")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")
 endif()
 
