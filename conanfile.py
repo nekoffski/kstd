@@ -38,6 +38,8 @@ class Recipe(ConanFile):
         deps = CMakeDeps(self)
         deps.generate()
         tc = CMakeToolchain(self)
+        tc.variables["KSTD_ENABLE_COVERAGE"] = int(
+            os.getenv('KSTD_ENABLE_COVERAGE', 0))
         tc.generate()
 
     def build(self):
@@ -46,7 +48,8 @@ class Recipe(ConanFile):
         cmake.build()
 
         self.test()
-        if bool(os.getenv("KSTD_RUN_BENCHMARKS", 0)):
+
+        if int(os.getenv("KSTD_RUN_BENCHMARKS", 0)):
             self.benchmark()
 
     def package(self):
