@@ -1,4 +1,4 @@
-name: Starlight CD pipeline
+name: KSTD build pipeline
 
 on:
   push:
@@ -18,6 +18,8 @@ jobs:
       - name: Install Conan
         id: conan
         uses: turtlebrowser/get-conan@main
+      - name: Create Conan default profile
+        run: conan profile detect
       - name: Install system dependencies
         run: ./bin/deps.sh
       - name: Run tests and benchmarks
