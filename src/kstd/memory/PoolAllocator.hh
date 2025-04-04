@@ -35,7 +35,11 @@ protected:
 
 private:
     [[nodiscard]] void* allocateImpl(u64 n, [[maybe_unused]] u64) override {
-        const auto elements = n / sizeof(T);
+        constexpr u64 typeSize = sizeof(T);
+
+        if (n % typeSize != 0) return nullptr;
+
+        const auto elements = n / typeSize;
 
         for (u64 i = 0u; i < m_capacity; ++i) {
             if (auto& slot = m_slots[i]; slot.free) {

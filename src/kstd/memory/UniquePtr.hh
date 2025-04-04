@@ -10,9 +10,9 @@
 namespace kstd {
 
 template <typename T> class UniquePtr : public NonCopyable {
-    template <typename U> friend class UniquePtr;
-
     struct Passkey {};
+
+    template <typename U> friend class UniquePtr;
 
     template <typename U, typename... Args>
     requires std::constructible_from<U, Args...>
@@ -31,7 +31,7 @@ public:
     ~UniquePtr() { clear(); }
 
     template <typename U>
-    requires std::is_base_of_v<T, U>
+    requires(std::is_base_of_v<T, U> || std::is_same_v<T, U>)
     UniquePtr(UniquePtr<U>&& oth) :
         m_allocator(std::exchange(oth.m_allocator, nullptr)),
         m_object(std::exchange(oth.m_object, nullptr)) {}
@@ -45,7 +45,10 @@ public:
     }
 
     void clear() noexcept {
-        if (m_allocator && m_object) {
+        if (m_object) {
+            log::expect(
+              m_allocator != nullptr, "No allocator in UniquePtr that owns memory"
+            );
             m_object->~T();
             m_allocator->deallocate(m_object);
         }
@@ -73,7 +76,7 @@ private:
     explicit UniquePtr(
       [[maybe_unused]] Passkey, Allocator* allocator, Args&&... args
     ) : m_allocator(allocator), m_object(m_allocator->allocate<T>()) {
-        ON_SCOPE_FAIL { clear(); };
+        ON_SCOPE_FAIL { m_allocator->deallocate(m_object); };
         new (m_object) T(std::forward<Args>(args)...);
     }
 

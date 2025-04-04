@@ -8,15 +8,29 @@
 #include "kstd/memory/Mallocator.hh"
 
 struct Base {
-    inline static bool called = false;
+    inline static bool called    = false;
+    inline static bool destroyed = false;
 
-    static void reset() { called = false; }
+    static void reset() {
+        called    = false;
+        destroyed = false;
+    }
+
+    virtual ~Base() { destroyed = true; }
+
     virtual void foo() { called = true; }
 };
 
 struct Derived : Base {
-    inline static bool called = false;
-    static void reset() { called = false; }
+    inline static bool called    = false;
+    inline static bool destroyed = false;
+
+    static void reset() {
+        called    = false;
+        destroyed = false;
+    }
+
+    ~Derived() override { destroyed = true; }
 
     virtual void foo() override { called = true; }
 };

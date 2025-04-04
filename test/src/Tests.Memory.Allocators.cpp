@@ -36,42 +36,42 @@ struct AllocatorTestBase : testing::TestWithParam<std::shared_ptr<Allocator>> {
 struct AllocatorBasicTests : AllocatorTestBase {};
 
 TEST_P(AllocatorBasicTests, allocDealloc) {
-    Mallocator mallocator;
-    int* ptr = mallocator.allocate<int>();
-    *ptr     = 1;
+    auto allocator = GetParam();
+    int* ptr       = allocator->allocate<int>();
+    *ptr           = 1;
     ASSERT_EQ(*ptr, 1);
-    mallocator.deallocate(ptr);
+    allocator->deallocate(ptr);
 }
 
 TEST_P(AllocatorBasicTests, allocDeallocArray) {
-    Mallocator mallocator;
+    auto allocator = GetParam();
 
-    int* ptr = mallocator.allocate<int>(elements);
+    int* ptr = allocator->allocate<int>(elements);
     for (auto i = 0u; i < elements; ++i) ptr[i] = i;
     for (auto i = 0u; i < elements; ++i) ASSERT_EQ(ptr[i], i);
 
-    mallocator.deallocate(ptr);
+    allocator->deallocate(ptr);
 }
 
 struct AllocatorComplexTypeTests : AllocatorTestBase {};
 
 TEST_P(AllocatorComplexTypeTests, allocDeallocComplexType) {
-    Mallocator mallocator;
-    Foo* ptr = mallocator.allocate<Foo>();
-    ptr->x   = 1u;
-    ptr->y   = 2u;
-    ptr->z   = 3u;
+    auto allocator = GetParam();
+    Foo* ptr       = allocator->allocate<Foo>();
+    ptr->x         = 1u;
+    ptr->y         = 2u;
+    ptr->z         = 3u;
 
     ASSERT_EQ(ptr->x, 1u);
     ASSERT_EQ(ptr->y, 2u);
     ASSERT_EQ(ptr->z, 3u);
-    mallocator.deallocate(ptr);
+    allocator->deallocate(ptr);
 }
 
 TEST_P(AllocatorComplexTypeTests, allocDeallocArrayComplexType) {
-    Mallocator mallocator;
+    auto allocator = GetParam();
 
-    Foo* ptr = mallocator.allocate<Foo>(elements);
+    Foo* ptr = allocator->allocate<Foo>(elements);
     for (auto i = 0u; i < elements; ++i) {
         ptr[i].x = i;
         ptr[i].y = i * 2u;
@@ -82,7 +82,7 @@ TEST_P(AllocatorComplexTypeTests, allocDeallocArrayComplexType) {
         ASSERT_EQ(ptr[i].y, i * 2u);
         ASSERT_EQ(ptr[i].z, i * 3u);
     }
-    mallocator.deallocate(ptr);
+    allocator->deallocate(ptr);
 }
 
 auto createNameGetter() {

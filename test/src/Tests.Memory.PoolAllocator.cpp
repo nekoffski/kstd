@@ -19,7 +19,7 @@ TEST(StackPoolAllocatorTests, defaultCapacity) {
     ASSERT_EQ(allocator.capacity(), defaultCapacity);
 }
 
-template <typename T> void testSlotsLeftUpdates(T& allocator) {
+static void testSlotsLeftUpdates(auto& allocator) {
     ASSERT_EQ(allocator.slotsLeft(), defaultCapacity);
 
     Foo* ptr = allocator.template allocate<Foo>();
@@ -47,7 +47,7 @@ TEST(StackPoolAllocatorTests, slotsLeftUpdates) {
     testSlotsLeftUpdates(allocator);
 }
 
-template <typename T> void testAllocateOutOfSpace(T& allocator) {
+static void testAllocateOutOfSpace(auto& allocator) {
     std::array<Foo*, smallCapacity> container = { nullptr };
 
     for (u32 i = 0u; i < smallCapacity; ++i) {
@@ -82,7 +82,22 @@ template <typename T> void testAllocateOutOfSpace(T& allocator) {
     ASSERT_EQ(allocator.template allocate<Foo>(1u), nullptr);
 }
 
-template <typename T> void testAllocateDeallocateArrays(T& allocator) {
+TEST(HeapPoolAllocatorTests, allocateOutOfSpace) {
+    HeapPoolAllocator<
+      Foo, AllocatorReportStrategy::disabled, AllocatorFailureStrategy::returnNull>
+      allocator{ smallCapacity };
+    testAllocateOutOfSpace(allocator);
+}
+
+TEST(StackPoolAllocatorTests, allocateOutOfSpace) {
+    StackPoolAllocator<
+      Foo, smallCapacity, AllocatorReportStrategy::disabled,
+      AllocatorFailureStrategy::returnNull>
+      allocator;
+    testAllocateOutOfSpace(allocator);
+}
+
+static void testAllocateDeallocateArrays(auto& allocator) {
     auto arr1 = allocator.template allocate<Foo>(3u);
     ASSERT_NE(arr1, nullptr);
     for (u64 i = 0u; i < 3u; ++i) arr1[i].y = i;
@@ -110,29 +125,6 @@ template <typename T> void testAllocateDeallocateArrays(T& allocator) {
     ASSERT_EQ(allocator.template allocate<Foo>(), nullptr);
 }
 
-template <typename T> void testDeallocatesClearsMemory(T& allocator) {
-    auto ptr = allocator.template allocate<Foo>();
-    ptr->z   = 1337u;
-    ASSERT_EQ(ptr->z, 1337u);
-    allocator.deallocate(ptr);
-    ASSERT_EQ(ptr->z, 0u);
-}
-
-TEST(HeapPoolAllocatorTests, allocateOutOfSpace) {
-    HeapPoolAllocator<
-      Foo, AllocatorReportStrategy::disabled, AllocatorFailureStrategy::returnNull>
-      allocator{ smallCapacity };
-    testAllocateOutOfSpace(allocator);
-}
-
-TEST(StackPoolAllocatorTests, allocateOutOfSpace) {
-    StackPoolAllocator<
-      Foo, smallCapacity, AllocatorReportStrategy::disabled,
-      AllocatorFailureStrategy::returnNull>
-      allocator;
-    testAllocateOutOfSpace(allocator);
-}
-
 TEST(HeapPoolAllocatorTests, allocateDeallocateArrays) {
     HeapPoolAllocator<
       Foo, AllocatorReportStrategy::disabled, AllocatorFailureStrategy::returnNull>
@@ -148,6 +140,14 @@ TEST(StackPoolAllocatorTests, allocateDeallocateArrays) {
     testAllocateDeallocateArrays(allocator);
 }
 
+static void testDeallocatesClearsMemory(auto& allocator) {
+    auto ptr = allocator.template allocate<Foo>();
+    ptr->z   = 1337u;
+    ASSERT_EQ(ptr->z, 1337u);
+    allocator.deallocate(ptr);
+    ASSERT_EQ(ptr->z, 0u);
+}
+
 TEST(HeapPoolAllocatorTests, deallocatesClearsMemory) {
     HeapPoolAllocator<
       Foo, AllocatorReportStrategy::disabled, AllocatorFailureStrategy::returnNull>
@@ -161,4 +161,28 @@ TEST(StackPoolAllocatorTests, deallocatesClearsMemory) {
       AllocatorFailureStrategy::returnNull>
       allocator;
     testDeallocatesClearsMemory(allocator);
+}
+
+static void testAllocateInvalidSize(auto& allocator) {
+    struct Bar {
+        Foo foo;
+        u64 b;
+    };
+    auto ptr = allocator.template allocate<Bar>();
+    ASSERT_EQ(ptr, nullptr);
+}
+
+TEST(HeapPoolAllocatorTests, allocateInvalidSize) {
+    HeapPoolAllocator<
+      Foo, AllocatorReportStrategy::disabled, AllocatorFailureStrategy::returnNull>
+      allocator{ smallCapacity };
+    testAllocateInvalidSize(allocator);
+}
+
+TEST(StackPoolAllocatorTests, allocateInvalidSize) {
+    StackPoolAllocator<
+      Foo, smallCapacity, AllocatorReportStrategy::disabled,
+      AllocatorFailureStrategy::returnNull>
+      allocator;
+    testAllocateInvalidSize(allocator);
 }
