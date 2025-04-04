@@ -27,7 +27,7 @@ jobs:
       - name: Generate venv
         run: ./bin/venv.sh
       - name: Generate code coverage
-        run: ./bin/coverage.sh
+        run: ./bin/generate_coverage.sh
       - name: Upload code coverage
         run: |
           curl -Os https://cli.codecov.io/latest/linux/codecov
