@@ -1,13 +1,9 @@
 #include <benchmark/benchmark.h>
 
+#include "Utils.hh"
+
 #include "kstd/memory/AlignedAllocator.hh"
 #include "kstd/memory/Mallocator.hh"
-
-struct Foo {
-    kstd::u8 x;
-    kstd::u32 y;
-    kstd::u64 z;
-};
 
 static void allocateIterateDeallocate(
   kstd::Allocator& allocator, benchmark::State& state
@@ -47,15 +43,14 @@ static void AlignedAllocator_allocateIterateDeallocate(benchmark::State& state) 
     allocateIterateDeallocate(aa, state);
 }
 
-// Register the benchmarks
 BENCHMARK(Mallocator_allocateIterateDeallocate)
   ->Ranges({
-    { 128,  16 * 1024 },
+    { 1024, 8 * 1024  },
     { 1024, 16 * 1024 }
 });
 
 BENCHMARK(AlignedAllocator_allocateIterateDeallocate)
   ->Ranges({
-    { 128,  16 * 1024 },
+    { 1024, 8 * 1024  },
     { 1024, 16 * 1024 }
 });

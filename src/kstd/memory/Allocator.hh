@@ -8,6 +8,8 @@
 
 namespace kstd {
 
+struct CustomAllocatorTag {};
+
 enum class AllocatorReportStrategy : u8 { enabled, disabled };
 enum class AllocatorFailureStrategy : u8 { returnNull, throwException, panic };
 

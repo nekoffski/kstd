@@ -55,7 +55,7 @@ class Recipe(ConanFile):
 
     def test(self):
         self.output.info("Running tests...")
-        self.run('ctest -V --output-on-failure')
+        self.run('ctest -VV --output-on-failure')
 
     def benchmark(self):
         self.output.info("Running benchmarks...")

@@ -59,4 +59,19 @@ file(GLOB_RECURSE HEADERS "${KSTD_INCLUDE}/*.hh")
 set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/kstd)
 
 install(TARGETS kstd)
-install(FILES ${SRC}/Concepts.hh ${SRC}/Core.hh ${SRC}/Log.hh ${SRC}/Math.hh DESTINATION include/kstd)
+install(
+    FILES 
+        ${SRC}/Concepts.hh 
+        ${SRC}/Core.hh 
+        ${SRC}/Log.hh 
+        ${SRC}/Math.hh 
+        ${SRC}/Functional.hh 
+        ${SRC}/Macros.hh 
+        ${SRC}/Scope.hh 
+        ${SRC}/memory/AlignedAllocator.hh
+        ${SRC}/memory/Allocator.hh
+        ${SRC}/memory/Mallocator.hh
+        ${SRC}/memory/PoolAllocator.hh
+        ${SRC}/memory/UniquePtr.hh
+        ${SRC}/memory/SharedPtr.hh
+    DESTINATION include/kstd)

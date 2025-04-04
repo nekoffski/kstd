@@ -1,6 +1,6 @@
 
 set(BENCHMARK_LINK gtest::gtest)
-set(UTILS_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/utils)
+set(UTILS_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR})
 set(LIBS kstd benchmark::benchmark_main)
 
 file (GLOB_RECURSE SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/Bench*.cpp)

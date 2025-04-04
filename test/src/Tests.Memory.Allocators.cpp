@@ -1,12 +1,9 @@
-#include <gtest/gtest.h>
-
+#include "Core.hh"
 #include <memory>
 
 #include "kstd/memory/Mallocator.hh"
 #include "kstd/memory/AlignedAllocator.hh"
 #include "kstd/memory/PoolAllocator.hh"
-
-#include "Utils.hh"
 
 using namespace kstd;
 

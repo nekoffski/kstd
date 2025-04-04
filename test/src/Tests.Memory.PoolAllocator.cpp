@@ -1,10 +1,8 @@
-#include <gtest/gtest.h>
+#include "Core.hh"
 
 #include <memory>
 
 #include "kstd/memory/PoolAllocator.hh"
-
-#include "Utils.hh"
 
 using namespace kstd;
 
