@@ -10,6 +10,7 @@ requirements = [
     "spdlog/1.14.1",
     "gtest/1.15.0",
     "benchmark/1.9.0",
+    "boost/1.87.0",
     "nlohmann_json/3.11.3",
 ]
 
@@ -46,7 +47,8 @@ class Recipe(ConanFile):
         cmake.configure()
         cmake.build()
 
-        self.test()
+        if int(os.getenv("KSTD_RUN_TESTS", 0)):
+            self.test()
 
         if int(os.getenv("KSTD_RUN_BENCHMARKS", 0)):
             self.benchmark()
@@ -70,5 +72,6 @@ class Recipe(ConanFile):
             'spdlog::spdlog',
             'gtest::gtest',
             'benchmark::benchmark_main',
-            'nlohmann_json::nlohmann_json'
+            'nlohmann_json::nlohmann_json',
+            'boost::boost'
         ]
