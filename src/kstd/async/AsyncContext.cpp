@@ -13,28 +13,15 @@ void AsyncContext::stop() {
     log::info("Received stop request");
     m_isRunning.store(false);
 
+    for (auto& ctx : m_services) ctx.channel.cancel();
+
     m_signals.cancel();
     m_signals.clear();
 }
 
 void AsyncContext::start() {
-    spawn(m_ctx.get_executor(), [&]() -> coro<void> {
-        for (auto& [config, service] : m_services) {
-            co_await service->init();
-
-            callAfter(m_ctx.get_executor(), config.updateInterval, [&]() {
-                spawn(m_ctx.get_executor(), [&]() -> coro<void> {
-                    while (m_isRunning.load()) {
-                        co_await service->update();
-                        co_await asyncSleep(config.updateInterval);
-                    }
-
-                    co_await service->deinit();
-                    co_return;
-                });
-            });
-        }
-        co_return;
+    spawn(m_ctx.get_executor(), [&]() -> Coro<void> {
+        for (auto& service : m_services) co_await runService(service);
     });
 }
 
@@ -44,6 +31,29 @@ void AsyncContext::setupSignals() {
             log::warn("Received signal ({})", signal);
             stop();
         }
+    });
+}
+
+Coro<void> AsyncContext::runService(ServiceContext& ctx) {
+    auto& [config, service, channel] = ctx;
+
+    co_await service->init();
+
+    spawn(m_ctx.get_executor(), [&]() -> Coro<void> {
+        while (m_isRunning.load()) {
+            auto msg = co_await channel.async_receive(boost::asio::use_awaitable);
+            co_await service->onMessage(*msg);
+        }
+    });
+
+    callAfter(m_ctx.get_executor(), config.updateInterval, [&]() {
+        spawn(m_ctx.get_executor(), [&]() -> Coro<void> {
+            while (m_isRunning.load()) {
+                co_await service->update(AsyncService::Messenger{ *this });
+                co_await asyncSleep(config.updateInterval);
+            }
+            co_await service->deinit();
+        });
     });
 }
 

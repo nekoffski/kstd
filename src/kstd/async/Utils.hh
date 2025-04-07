@@ -31,7 +31,7 @@ inline auto asyncSleep(
 
 }  // namespace details
 
-coro<void> asyncSleep(std::chrono::nanoseconds duration);
+Coro<void> asyncSleep(std::chrono::nanoseconds duration);
 
 template <typename Executor, typename Callback>
 void callAfter(

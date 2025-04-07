@@ -5,19 +5,40 @@
 #include "kstd/async/Core.hh"
 #include "kstd/async/Utils.hh"
 #include "kstd/async/AsyncContext.hh"
+#include "kstd/memory/UniquePtr.hh"
 
 using namespace std::chrono_literals;
 
+struct TestMessage {
+    int x = 1337;
+};
+
 struct ServiceA : kstd::AsyncService {
-    kstd::coro<void> update() override {
-        kstd::log::info("Hello from ServiceA!");
+    ServiceA() : AsyncService("ServiceA") {}
+
+    kstd::Coro<void> update(Messenger&& messenger) override {
+        co_await messenger.send<TestMessage>().to("ServiceB");
+    }
+
+    kstd::Coro<void> onMessage(const kstd::AsyncMessage& message) override {
+        if (const auto msg = message.as<TestMessage>(); msg) {
+            kstd::log::info("{} - got message: {}", name, msg->x);
+        }
         co_return;
     }
 };
 
 struct ServiceB : kstd::AsyncService {
-    kstd::coro<void> update() override {
-        kstd::log::info("Hello from ServiceB!");
+    ServiceB() : AsyncService("ServiceB") {}
+
+    kstd::Coro<void> update([[maybe_unused]] Messenger&& messenger) override {
+        co_return;
+    }
+
+    kstd::Coro<void> onMessage(const kstd::AsyncMessage& message) override {
+        if (const auto msg = message.as<TestMessage>(); msg) {
+            kstd::log::info("{} - got message: {}", name, msg->x);
+        }
         co_return;
     }
 };
@@ -28,6 +49,7 @@ int main() {
     kstd::AsyncService::Config serviceConfig{ .updateInterval = 1000ms };
 
     kstd::AsyncContext ctx;
+
     ctx.addService<ServiceA>(serviceConfig);
     ctx.addService<ServiceB>(serviceConfig);
 

@@ -3,19 +3,30 @@
 #include <vector>
 #include <atomic>
 
+#include <boost/asio/experimental/channel.hpp>
+
 #include "kstd/Concepts.hh"
 #include "kstd/memory/Mallocator.hh"
 #include "kstd/memory/UniquePtr.hh"
 
 #include "Core.hh"
 #include "AsyncService.hh"
+#include "AsyncMessage.hh"
 
 namespace kstd {
 
 class AsyncContext : public NonCopyable, public NonMovable {
+    friend class AsyncService::Messenger;
+
+    static constexpr u64 channelSize = 16u;
+
+    using Channel = boost::asio::experimental::channel<
+      void(boost::system::error_code, UniquePtr<AsyncMessage>)>;
+
     struct ServiceContext {
         AsyncService::Config config;
         UniquePtr<AsyncService> service;
+        Channel channel;
     };
 
 public:
@@ -33,17 +44,19 @@ public:
           config,
           makeUniqueWithAllocator<T>(
             &m_serviceAllocator, std::forward<Args>(args)...
-          )
+          ),
+          Channel{ m_ctx.get_executor(), channelSize }
         );
     }
 
     auto getExecutor() { return m_ctx.get_executor(); }
-
     void stop();
 
 private:
     void start();
     void setupSignals();
+
+    Coro<void> runService(ServiceContext& ctx);
 
     boost::asio::io_context m_ctx;
     boost::asio::signal_set m_signals;

@@ -18,7 +18,7 @@ void asyncSleepImpl(
 
 }  // namespace details
 
-coro<void> asyncSleep(std::chrono::nanoseconds duration) {
+Coro<void> asyncSleep(std::chrono::nanoseconds duration) {
     co_await details::asyncSleep(
       co_await boost::asio::this_coro::executor, duration, boost::asio::use_awaitable
     );
