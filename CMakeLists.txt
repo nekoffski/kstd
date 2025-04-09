@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
 project(kstd CXX)
 
-SET(KSTD_ENABLE_COVERAGE OFF CACHE BOOL "Coverage option")
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE Debug)
+
+find_package(spdlog CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
+find_package(benchmark CONFIG REQUIRED)
+find_package(Boost CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 set(KSTD_INCLUDE 
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -25,13 +30,6 @@ set(GCC_COVERAGE_COMPILE_FLAGS
     "--coverage -O0 -fprofile-arcs -ftest-coverage -fno-elide-constructors -fno-inline")
 set(GCC_COVERAGE_LINK_FLAGS "-lgcov")
 set(KSTD_COMPILER_FLAGS "")
-
-find_package(spdlog CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
-find_package(GTest CONFIG REQUIRED)
-find_package(benchmark CONFIG REQUIRED)
-find_package(Boost CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
 
 set(KSTD_LIBS spdlog::spdlog fmt::fmt gtest::gtest benchmark::benchmark_main 
         boost::boost nlohmann_json::nlohmann_json)
