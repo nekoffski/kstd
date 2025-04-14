@@ -49,7 +49,8 @@ Coro<void> AsyncContext::runService(ServiceContext& ctx) {
     callAfter(m_ctx.get_executor(), config.updateInterval, [&]() {
         spawn(m_ctx.get_executor(), [&]() -> Coro<void> {
             while (m_isRunning.load()) {
-                co_await service->update(AsyncService::Messenger{ *this });
+                co_await service->update(AsyncService::Messenger{
+                  *this, getExecutor() });
                 co_await asyncSleep(config.updateInterval);
             }
             co_await service->deinit();

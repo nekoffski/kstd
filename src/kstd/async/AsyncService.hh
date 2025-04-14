@@ -5,6 +5,7 @@
 
 #include "Core.hh"
 #include "AsyncMessage.hh"
+#include "AsyncPromise.hh"
 
 namespace kstd {
 
@@ -19,8 +20,8 @@ public:
 
     virtual Coro<void> init() { co_return; };
     virtual Coro<void> deinit() { co_return; }
-    virtual Coro<void> update(Messenger&& messenger)          = 0;
-    virtual Coro<void> onMessage(const AsyncMessage& message) = 0;
+    virtual Coro<void> update(Messenger&& messenger)    = 0;
+    virtual Coro<void> onMessage(AsyncMessage& message) = 0;
 
     class Messenger {
         class SendProxy : public NonMovable, public NonCopyable {
@@ -29,8 +30,11 @@ public:
               UniquePtr<AsyncMessage> message, Messenger& messenger
             ) : m_message(std::move(message)), m_messenger(messenger) {}
 
-            Coro<void> to(const std::string& destination) && {
+            Coro<SharedPtr<AsyncMessage::Promise>> to(const std::string& destination
+            ) && {
+                auto promise = m_message->getPromise();
                 co_await m_messenger.sendImpl(destination, std::move(m_message));
+                co_return promise;
             }
 
         private:
@@ -41,13 +45,16 @@ public:
         friend class SendProxy;
 
     public:
-        explicit Messenger(AsyncContext& ctx);
+        explicit Messenger(
+          AsyncContext& ctx, const boost::asio::any_io_executor& ex
+        );
 
         template <typename T, typename... Args>
         requires std::constructible_from<T, Args...>
         SendProxy send(Args&&... args) {
             return SendProxy{
-                makeUnique<details::TypedAsyncMessage<T>>(std::forward<Args>(args)...
+                makeUnique<details::TypedAsyncMessage<T>>(
+                  m_ex, std::forward<Args>(args)...
                 ),
                 *this
             };
@@ -59,6 +66,7 @@ public:
         );
 
         AsyncContext& m_ctx;
+        const boost::asio::any_io_executor& m_ex;
     };
 
     struct Config {

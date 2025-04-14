@@ -6,7 +6,9 @@ namespace kstd {
 
 AsyncService::AsyncService(const std::string& name) : name(name) {}
 
-AsyncService::Messenger::Messenger(AsyncContext& ctx) : m_ctx(ctx) {}
+AsyncService::Messenger::Messenger(
+  AsyncContext& ctx, const boost::asio::any_io_executor& ex
+) : m_ctx(ctx), m_ex(ex) {}
 
 Coro<void> AsyncService::Messenger::sendImpl(
   const std::string& destination, UniquePtr<AsyncMessage> message

@@ -13,14 +13,25 @@ struct TestMessage {
     int x = 1337;
 };
 
+struct TestResponse {
+    int x = 2137;
+};
+
 struct ServiceA : kstd::AsyncService {
     ServiceA() : AsyncService("ServiceA") {}
 
     kstd::Coro<void> update(Messenger&& messenger) override {
-        co_await messenger.send<TestMessage>().to("ServiceB");
+        auto responseHandle = co_await messenger.send<TestMessage>().to("ServiceB");
+        auto response       = co_await responseHandle->wait();
+
+        if (response->is<TestResponse>()) {
+            kstd::log::info(
+              "Got test response!: {}", response->as<TestResponse>()->x
+            );
+        }
     }
 
-    kstd::Coro<void> onMessage(const kstd::AsyncMessage& message) override {
+    kstd::Coro<void> onMessage(kstd::AsyncMessage& message) override {
         if (const auto msg = message.as<TestMessage>(); msg) {
             kstd::log::info("{} - got message: {}", name, msg->x);
         }
@@ -35,9 +46,10 @@ struct ServiceB : kstd::AsyncService {
         co_return;
     }
 
-    kstd::Coro<void> onMessage(const kstd::AsyncMessage& message) override {
+    kstd::Coro<void> onMessage(kstd::AsyncMessage& message) override {
         if (const auto msg = message.as<TestMessage>(); msg) {
             kstd::log::info("{} - got message: {}", name, msg->x);
+            co_await message.respond<TestResponse>();
         }
         co_return;
     }
