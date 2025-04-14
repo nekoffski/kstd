@@ -15,13 +15,14 @@ public:
     explicit AsyncPromise(const Executor& ex) : m_oneShotChannel(ex, 1u) {}
 
     Coro<T> wait() {
-        return m_oneShotChannel.async_receive(boost::asio::use_awaitable);
+        co_return (co_await m_oneShotChannel.async_receive(boost::asio::use_awaitable
+        ));
     }
 
     Coro<void> set(T&& value) {
-        return m_oneShotChannel.async_send(
+        co_return (co_await m_oneShotChannel.async_send(
           boost::system::error_code{}, std::move(value), boost::asio::use_awaitable
-        );
+        ));
     }
 
 private:

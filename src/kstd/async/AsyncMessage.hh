@@ -55,9 +55,9 @@ public:
     SharedPtr<Promise> getPromise() { return m_promise; }
 
     template <typename T, typename... Args> Coro<void> respond(Args&&... args) {
-        return m_promise->set(
+        co_return (co_await m_promise->set(
           makeUnique<details::TypedAsyncResponse<T>>(std::forward<Args>(args)...)
-        );
+        ));
     }
 
 private:
