@@ -67,10 +67,23 @@ install(
         ${SRC}/Functional.hh 
         ${SRC}/Macros.hh 
         ${SRC}/Scope.hh 
+    DESTINATION include/kstd)
+install(
+    FILES 
         ${SRC}/memory/AlignedAllocator.hh
         ${SRC}/memory/Allocator.hh
         ${SRC}/memory/Mallocator.hh
         ${SRC}/memory/PoolAllocator.hh
         ${SRC}/memory/UniquePtr.hh
         ${SRC}/memory/SharedPtr.hh
-    DESTINATION include/kstd)
+        ${SRC}/memory/LocalPtr.hh
+    DESTINATION include/kstd/memory)
+install(
+    FILES 
+        ${SRC}/async/AsyncContext.hh
+        ${SRC}/async/AsyncMessage.hh
+        ${SRC}/async/AsyncPromise.hh
+        ${SRC}/async/AsyncService.hh
+        ${SRC}/async/Core.hh
+        ${SRC}/async/Utils.hh
+    DESTINATION include/kstd/async)
