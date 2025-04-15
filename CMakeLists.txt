@@ -67,6 +67,7 @@ install(
         ${SRC}/Functional.hh 
         ${SRC}/Macros.hh 
         ${SRC}/Scope.hh 
+        ${SRC}/RTTI.hh 
     DESTINATION include/kstd)
 install(
     FILES 
