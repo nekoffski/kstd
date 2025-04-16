@@ -13,6 +13,7 @@ struct Base : kstd::RTTI {
 struct Derived : Base {
     std::type_index getType() const override { return typeid(Derived); }
     int foo() override { return 1; }
+    int bar() { return 2; }
 };
 
 }  // namespace
@@ -20,4 +21,5 @@ struct Derived : Base {
 TEST(RTTITests, hierarchy) {
     std::unique_ptr<Base> ptr = std::make_unique<Derived>();
     ASSERT_TRUE(ptr->is<Derived>());
+    ASSERT_EQ(ptr->as<Derived>()->bar(), 2);
 }
