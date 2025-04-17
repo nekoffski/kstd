@@ -3,6 +3,7 @@
 #include <atomic>
 #include <concepts>
 #include <utility>
+#include <cstddef>
 
 #include "kstd/Core.hh"
 #include "kstd/Scope.hh"
@@ -35,13 +36,17 @@ public:
     struct ControlBlock {
         template <typename... Args>
         requires std::constructible_from<T, Args...>
-        explicit ControlBlock(Args&&... args
-        ) : object(std::forward<Args>(args)...), referenceCounter(1) {}
+        explicit ControlBlock(Args&&... args) : referenceCounter(1) {
+            std::memset(&buffer, 0, sizeof(T));
+            new (&buffer) T(std::forward<Args>(args)...);
+        }
 
-        ~ControlBlock() = default;
+        ~ControlBlock() { convert()->~T(); }
 
-        T object;
         std::atomic<i64> referenceCounter;
+        alignas(T) std::byte buffer[sizeof(T)];
+
+        T* convert() { return reinterpret_cast<T*>(&buffer[0]); }
     };
 
     SharedPtr() : m_controlBlock(nullptr) {}
@@ -117,14 +122,14 @@ public:
     bool empty() const { return m_controlBlock == nullptr; }
     operator bool() const { return not empty(); }
 
-    T& operator*() { return m_controlBlock->object; }
-    const T& operator*() const { return m_controlBlock->object; }
+    T& operator*() { return *m_controlBlock->convert(); }
+    const T& operator*() const { return *m_controlBlock->convert(); }
 
-    T* operator->() { return &m_controlBlock->object; }
-    const T* operator->() const { return &m_controlBlock->object; }
+    T* operator->() { return m_controlBlock->convert(); }
+    const T* operator->() const { return m_controlBlock->convert(); }
 
-    T* get() { return &m_controlBlock->object; }
-    const T* get() const { return &m_controlBlock->object; }
+    T* get() { return m_controlBlock->convert(); }
+    const T* get() const { return m_controlBlock->convert(); }
 
 private:
     template <typename... Args>
@@ -172,7 +177,7 @@ SharedPtr<Destination> sharedPtrCast(SharedPtr<Source>& ptr) {
     if (ptr.empty()) return nullptr;
 
     auto& controlBlock = ptr.m_controlBlock;
-    if (dynamic_cast<Destination*>(&controlBlock->object) != nullptr) {
+    if (dynamic_cast<Destination*>(controlBlock->convert()) != nullptr) {
         return SharedPtr<Destination>{
             ptr.m_allocator,
             reinterpret_cast<SharedPtr<Destination>::ControlBlock*>(controlBlock)

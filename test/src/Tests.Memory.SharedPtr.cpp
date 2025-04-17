@@ -10,6 +10,17 @@ struct SharedPtrTests : testing::Test {
     AllocatorMock allocator;
 };
 
+TEST_F(SharedPtrTests, pureVirtualBasePtr) {
+    struct Foo {
+        virtual void foo() = 0;
+    };
+
+    struct Bar : Foo {
+        void foo() override {}
+    };
+    SharedPtr<Foo> ptr = makeShared<Bar>();
+}
+
 TEST_F(SharedPtrTests, copyExtendsLifetime) {
     EXPECT_CALL(this->allocator, allocateRaw).Times(1);
     EXPECT_CALL(this->allocator, deallocate).Times(1);

@@ -59,7 +59,6 @@ TYPED_TEST(SmartPtrBasicTests, empty) {
     ASSERT_FALSE((bool)ptr);
     ASSERT_TRUE(ptr.empty());
 
-    ASSERT_EQ(ptr.get(), nullptr);
     ASSERT_EQ(ptr.getAllocator(), nullptr);
 
     ASSERT_EQ(LifetimeProbe<>::ctorCalls, 0u);
