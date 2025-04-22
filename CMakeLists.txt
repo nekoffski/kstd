@@ -82,10 +82,9 @@ install(
     DESTINATION include/kstd/memory)
 install(
     FILES 
-        ${SRC}/async/AsyncContext.hh
+        ${SRC}/async/AsyncMessenger.hh
         ${SRC}/async/AsyncMessage.hh
         ${SRC}/async/AsyncPromise.hh
-        ${SRC}/async/AsyncService.hh
         ${SRC}/async/Core.hh
         ${SRC}/async/Utils.hh
     DESTINATION include/kstd/async)

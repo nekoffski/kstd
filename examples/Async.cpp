@@ -4,7 +4,7 @@
 
 #include "kstd/async/Core.hh"
 #include "kstd/async/Utils.hh"
-#include "kstd/async/AsyncContext.hh"
+#include "kstd/async/AsyncMessenger.hh"
 #include "kstd/memory/UniquePtr.hh"
 
 using namespace std::chrono_literals;
@@ -17,55 +17,49 @@ struct TestResponse {
     int x = 2137;
 };
 
-struct ServiceA : kstd::AsyncService {
-    ServiceA() : AsyncService("ServiceA") {}
-
-    kstd::Coro<void> update(Messenger&& messenger) override {
-        auto responseHandle = co_await messenger.send<TestMessage>().to("ServiceB");
-        auto response       = co_await responseHandle->wait();
-
-        if (response->is<TestResponse>()) {
-            kstd::log::info(
-              "Got test response!: {}", response->as<TestResponse>()->x
-            );
-        }
-    }
-
-    kstd::Coro<void> onMessage(kstd::AsyncMessage& message) override {
-        if (const auto msg = message.as<TestMessage>(); msg) {
-            kstd::log::info("{} - got message: {}", name, msg->x);
-        }
-        co_return;
-    }
-};
-
-struct ServiceB : kstd::AsyncService {
-    ServiceB() : AsyncService("ServiceB") {}
-
-    kstd::Coro<void> update([[maybe_unused]] Messenger&& messenger) override {
-        co_return;
-    }
-
-    kstd::Coro<void> onMessage(kstd::AsyncMessage& message) override {
-        if (const auto msg = message.as<TestMessage>(); msg) {
-            kstd::log::info("{} - got message: {}", name, msg->x);
-            co_await message.respond<TestResponse>();
-        }
-        co_return;
-    }
-};
-
 int main() {
     kstd::log::init("Async");
 
-    kstd::AsyncService::Config serviceConfig{ .updateInterval = 1000ms };
+    boost::asio::io_context ctx;
+    boost::asio::signal_set signals{ ctx, SIGINT, SIGTERM };
+    signals.async_wait([&](boost::system::error_code ec, int signal) {
+        if (not ec) {
+            ctx.stop();
+        }
+    });
 
-    kstd::AsyncContext ctx;
+    kstd::AsyncMessenger messenger{ ctx };
 
-    ctx.addService<ServiceA>(serviceConfig);
-    ctx.addService<ServiceB>(serviceConfig);
+    kstd::spawn(
+      ctx.get_executor(),
+      [&, q = messenger.registerQueue("C1")]() -> kstd::Coro<void> {
+          while (true) {
+              auto promise = co_await q->send<TestMessage>().to("C2");
+              kstd::log::debug("Coro: sent, waiting for response");
+              co_await promise->wait();
+              kstd::log::debug("Coro: got response");
+
+              co_await kstd::asyncSleep(1000ms);
+          }
+          co_return;
+      }
+    );
+
+    kstd::spawn(
+      ctx.get_executor(),
+      [&, q = messenger.registerQueue("C2")]() -> kstd::Coro<void> {
+          while (true) {
+              auto msg = co_await q->wait();
+              kstd::log::debug("Coro2: got message");
+              co_await msg->respond<TestResponse>();
+              kstd::log::debug("Coro2: responded");
+
+              co_await kstd::asyncSleep(1000ms);
+          }
+          co_return;
+      }
+    );
 
     ctx.run();
-
     return 0;
 }
