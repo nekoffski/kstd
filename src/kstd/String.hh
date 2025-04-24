@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace kstd {
 
@@ -17,5 +18,7 @@ std::optional<std::string> extensionFromPath(
   const std::string& path,
   ExtensionExtractionMode mode = ExtensionExtractionMode::full
 );
+
+std::vector<std::string> split(const std::string& input, char separator);
 
 }  // namespace kstd

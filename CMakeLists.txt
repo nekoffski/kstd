@@ -68,7 +68,9 @@ install(
         ${SRC}/Macros.hh 
         ${SRC}/Scope.hh 
         ${SRC}/RTTI.hh 
-        ${SRC}/String.hh 
+        ${SRC}/String.hh
+        ${SRC}/Singleton.hh
+        ${SRC}/FileSystem.hh
     DESTINATION include/kstd)
 install(
     FILES 
