@@ -27,6 +27,8 @@ std::optional<std::string> extensionFromPath(
   ExtensionExtractionMode mode = ExtensionExtractionMode::full
 );
 
-std::vector<std::string> split(const std::string& input, char separator);
+std::vector<std::string> split(
+  const std::string& input, const std::string& separator
+);
 
 }  // namespace kstd

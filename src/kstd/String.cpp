@@ -1,12 +1,20 @@
 #include "String.hh"
 
-#include <boost/algorithm/string.hpp>
-
 namespace kstd {
 
-std::vector<std::string> split(const std::string& input, char separator) {
-    std::vector<std::string> output;
-    return boost::split(output, input, boost::is_any_of(std::string{ separator }));
+std::vector<std::string> split(
+  const std::string& input, const std::string& separator
+) {
+    std::vector<std::string> result;
+    u64 start = 0;
+    u64 end;
+
+    while ((end = input.find(separator, start)) != std::string::npos) {
+        result.push_back(input.substr(start, end - start));
+        start = end + separator.length();
+    }
+    result.push_back(input.substr(start));
+    return result;
 }
 
 std::string nameFromPath(const std::string& path, NameExtractionMode mode) {

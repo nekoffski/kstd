@@ -46,7 +46,7 @@ std::string FileSystem::readFile(const Path& path) const {
 }
 
 std::vector<std::string> FileSystem::readLines(const Path& path) const {
-    static const char endOfLine = '\n';
+    static const std::string endOfLine = "\n";
     return split(readFile(path), endOfLine);
 }
 
