@@ -71,6 +71,7 @@ install(
         ${SRC}/String.hh
         ${SRC}/Singleton.hh
         ${SRC}/FileSystem.hh
+        ${SRC}/Id.hh
     DESTINATION include/kstd)
 install(
     FILES 

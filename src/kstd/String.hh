@@ -3,8 +3,16 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <algorithm>
+
+#include "Core.hh"
 
 namespace kstd {
+
+template <u64 N> struct StringLiteral {
+    constexpr StringLiteral(const char (&str)[N]) { std::copy_n(str, N, value); }
+    char value[N];
+};
 
 enum class NameExtractionMode { withExtension, withoutExtension };
 enum class ExtensionExtractionMode { full, lastChunk };
