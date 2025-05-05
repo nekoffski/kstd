@@ -10,6 +10,12 @@ using namespace kstd;
 static constexpr Id8::Type value1 = 1;
 static constexpr Id8::Type value2 = 7;
 
+TEST(SequenceGeneratorTests, generateSequence) {
+    SequenceGenerator<0, 5> seq;
+    for (int x = 0; x <= 5; ++x)
+        for (int i = 0; i <= 5; ++i) ASSERT_EQ(seq.get(), i);
+}
+
 TEST(UuidTests, uniqueSimple) { EXPECT_NE(generateUuid(), generateUuid()); }
 
 TEST(UuidTests, uniqueComplex) {

@@ -16,6 +16,22 @@
 
 namespace kstd {
 
+template <u64 Min, u64 Max> class SequenceGenerator {
+    static_assert(Min < Max);
+    static_assert(Max < std::numeric_limits<u64>::max());
+
+public:
+    SequenceGenerator() : m_current(0u) {}
+
+    u64 get() {
+        m_current %= (Max + 1u);
+        return m_current++;
+    }
+
+private:
+    u64 m_current;
+};
+
 using Uuid = std::string;
 
 Uuid generateUuid();

@@ -72,6 +72,7 @@ install(
         ${SRC}/Singleton.hh
         ${SRC}/FileSystem.hh
         ${SRC}/Id.hh
+        ${SRC}/Error.hh
     DESTINATION include/kstd)
 install(
     FILES 
