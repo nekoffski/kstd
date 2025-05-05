@@ -18,6 +18,7 @@ struct FormatWithLocation {
     spdlog::source_loc loc;
 
     template <typename String>
+    requires std::constructible_from<std::string_view, String>
     FormatWithLocation(
       const String& s,
       const std::source_location& location = std::source_location::current()
