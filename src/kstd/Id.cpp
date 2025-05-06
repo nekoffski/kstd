@@ -11,4 +11,8 @@ Uuid generateUuid() {
     return uuids::to_string(uuids::random_generator()());
 }
 
+WithUuid::WithUuid() : m_uuid(generateUuid()) {}
+
+const Uuid& WithUuid::getUuid() const { return m_uuid; }
+
 }  // namespace kstd

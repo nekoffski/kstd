@@ -90,7 +90,7 @@ private:
         }
     }
 
-    const u64 m_capacity;
+    u64 m_capacity;
     u64 m_slotsLeft;
     std::vector<Slot> m_slots;
     T* m_buffer;

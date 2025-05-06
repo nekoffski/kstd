@@ -10,6 +10,36 @@ using namespace kstd;
 static constexpr Id8::Type value1 = 1;
 static constexpr Id8::Type value2 = 7;
 
+TEST(WithIdTests, basic) {
+    struct Foo : WithId<Foo> {};
+
+    Foo f1;
+    ASSERT_EQ(f1.getId(), 0);
+    Foo f2;
+    ASSERT_EQ(f2.getId(), 1);
+
+    {
+        Foo f3;
+        ASSERT_EQ(f3.getId(), 2);
+    }
+
+    Foo f4;
+    ASSERT_EQ(f4.getId(), 2);
+
+    {
+        Foo f5;
+        ASSERT_EQ(f5.getId(), 3);
+
+        f4 = std::move(f5);
+    }
+
+    EXPECT_EQ(f4.getId(), 3);
+    Foo f6;
+    EXPECT_EQ(f6.getId(), 2);
+}
+
+TEST(WithUuidTests, basic) {}
+
 TEST(SequenceGeneratorTests, generateSequence) {
     SequenceGenerator<0, 5> seq;
     for (int x = 0; x <= 5; ++x)

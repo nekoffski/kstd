@@ -36,23 +36,46 @@ using Uuid = std::string;
 
 Uuid generateUuid();
 
-template <typename T, typename Id = u64>
-requires std::is_arithmetic_v<Id>
-class Identificable : public virtual kstd::NonCopyable {
+class WithUuid : public virtual kstd::NonCopyable {
 public:
-    explicit Identificable() : id(createId()) {}
+    explicit WithUuid();
 
-    Identificable(Identificable&& oth)            = default;
-    Identificable& operator=(Identificable&& oth) = default;
+    WithUuid(WithUuid&& oth)            = default;
+    WithUuid& operator=(WithUuid&& oth) = default;
 
-    ~Identificable() {
-        std::scoped_lock guard{ s_mutex };
-        s_freeIds.push(id);
-    }
-
-    Id id;
+    const Uuid& getUuid() const;
 
 private:
+    Uuid m_uuid;
+};
+
+template <typename T> class WithId : public virtual kstd::NonCopyable {
+public:
+    using Id = u64;
+
+    explicit WithId() : m_id(createId()), m_shouldFree(true) {}
+
+    WithId(WithId&& oth) : m_id(oth.m_id) { oth.m_shouldFree = false; }
+
+    WithId& operator=(WithId&& oth) {
+        free();
+        m_id             = oth.m_id;
+        oth.m_shouldFree = false;
+        return *this;
+    }
+
+    ~WithId() { free(); }
+
+    Id getId() const { return m_id; }
+
+private:
+    void free() {
+        if (m_shouldFree) {
+            std::scoped_lock guard{ s_mutex };
+            s_freeIds.push(m_id);
+        }
+    }
+
     static Id createId() {
         std::scoped_lock guard{ s_mutex };
 
@@ -65,39 +88,40 @@ private:
         return s_generator++;
     }
 
+    Id m_id;
+    bool m_shouldFree;
+
     inline static Id s_generator = 0;
     inline static std::queue<Id> s_freeIds;
     inline static std::mutex s_mutex;
 };
 
 template <typename T, StringLiteral NameGenerator, bool Const = true>
-class NamedResource : public Identificable<T> {
+class NamedResource : public WithId<T> {
     inline const static std::string baseName = NameGenerator.value;
 
 public:
     explicit NamedResource(std::optional<std::string> name = {}) :
         name(generateName(name)) {
         log::debug(
-          "Creating {} - id={} name='{}'", baseName, Identificable<T>::id, this->name
+          "Creating {} - id={} name='{}'", baseName, WithId<T>::id, this->name
         );
     }
 
-    virtual ~NamedResource() {
-        log::debug(
-          "Destroying {} - id={} name='{}'", baseName, Identificable<T>::id, name
-        );
+    ~NamedResource() {
+        log::debug("Destroying {} - id={} name='{}'", baseName, WithId<T>::id, name);
     }
 
     std::conditional_t<Const, const std::string, std::string> name;
 
 private:
     std::string generateName(std::optional<std::string> name) {
-        return name.value_or(fmt::format("{}_{}", baseName, Identificable<T>::id));
+        return name.value_or(fmt::format("{}_{}", baseName, WithId<T>::id));
     }
 };
 
 template <typename T>
-concept IsIdentificable = std::derived_from<T, Identificable<T>>;
+concept IsWithId = std::derived_from<T, WithId<T>>;
 
 template <typename T>
 requires std::is_integral_v<T>
