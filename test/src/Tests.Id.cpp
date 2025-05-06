@@ -10,6 +10,19 @@ using namespace kstd;
 static constexpr Id8::Type value1 = 1;
 static constexpr Id8::Type value2 = 7;
 
+TEST(NamedResourceTests, mutableOverload) {
+    struct Mutable : NamedResource<Mutable, "Mutable", false> {};
+    Mutable m{};
+    ASSERT_EQ(m.getName(), "Mutable_0");
+    m.setName("Test");
+    ASSERT_EQ(m.getName(), "Test");
+}
+
+TEST(NamedResourceTests, constOverload) {
+    struct Const : NamedResource<Const, "Const"> {};
+    ASSERT_EQ(Const{}.getName(), "Const_0");
+}
+
 TEST(WithIdTests, basic) {
     struct Foo : WithId<Foo> {};
 

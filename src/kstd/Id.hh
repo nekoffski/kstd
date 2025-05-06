@@ -102,21 +102,31 @@ class NamedResource : public WithId<T> {
 
 public:
     explicit NamedResource(std::optional<std::string> name = {}) :
-        name(generateName(name)) {
+        m_name(generateName(name)) {
         log::debug(
-          "Creating {} - id={} name='{}'", baseName, WithId<T>::id, this->name
+          "Creating {} - id={} name='{}'", baseName, WithId<T>::getId(), m_name
         );
     }
 
     ~NamedResource() {
-        log::debug("Destroying {} - id={} name='{}'", baseName, WithId<T>::id, name);
+        log::debug(
+          "Destroying {} - id={} name='{}'", baseName, WithId<T>::getId(), m_name
+        );
     }
 
-    std::conditional_t<Const, const std::string, std::string> name;
+    const std::string& getName() const { return m_name; }
+
+    void setName(const std::string& name)
+    requires(!Const)
+    {
+        m_name = name;
+    }
 
 private:
+    std::string m_name;
+
     std::string generateName(std::optional<std::string> name) {
-        return name.value_or(fmt::format("{}_{}", baseName, WithId<T>::id));
+        return name.value_or(fmt::format("{}_{}", baseName, WithId<T>::getId()));
     }
 };
 
