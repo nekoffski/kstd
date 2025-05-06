@@ -12,7 +12,13 @@ template <typename T> struct ToImpl {};
 template <typename T, std::ranges::range R>
 requires std::convertible_to<std::ranges::range_value_t<R>, T>
 std::vector<T> operator|(R&& r, ToImpl<T>) {
-    return std::vector<T>{ r.begin(), r.end() };
+    std::vector<T> out;
+
+    if constexpr (std::ranges::sized_range<decltype(r)>)
+        out.reserve(std::ranges::size(r));
+
+    std::ranges::copy(r, std::back_inserter(out));
+    return out;
 }
 
 }  // namespace details
