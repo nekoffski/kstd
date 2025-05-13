@@ -19,9 +19,10 @@ public:
         return is<T>() ? static_cast<const T*>(getPointer()) : nullptr;
     }
 
-private:
     virtual std::type_index getType() const = 0;
-    virtual const void* getPointer() const  = 0;
+
+private:
+    virtual const void* getPointer() const = 0;
 };
 
 namespace details {
@@ -33,9 +34,9 @@ public:
     explicit TypedAsyncResponse(Args&&... args
     ) : m_message(std::forward<Args>(args)...) {}
 
-private:
     std::type_index getType() const override { return typeid(T); }
 
+private:
     const void* getPointer() const override {
         return static_cast<const void*>(&m_message);
     }
@@ -74,9 +75,9 @@ public:
       const boost::asio::any_io_executor& ex, Args&&... args
     ) : AsyncMessage(ex), m_message(std::forward<Args>(args)...) {}
 
-private:
     std::type_index getType() const override { return typeid(T); }
 
+private:
     const void* getPointer() const override {
         return static_cast<const void*>(&m_message);
     }

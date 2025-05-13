@@ -3,6 +3,7 @@
 #include <array>
 #include <vector>
 
+#include "kstd/Concepts.hh"
 #include "Allocator.hh"
 
 namespace kstd {
@@ -12,7 +13,7 @@ namespace details {
 template <
   typename T, AllocatorReportStrategy ReportStrategy,
   AllocatorFailureStrategy FailureStrategy>
-class PoolAllocator : public AllocatorBase<ReportStrategy> {
+class PoolAllocator : public AllocatorBase<ReportStrategy>, public NonCopyable {
     struct Slot {
         u64 index;
         u64 elements;
@@ -26,6 +27,9 @@ public:
         m_slots.reserve(capacity);
         for (u64 i = 0; i < capacity; ++i) m_slots.emplace_back(i, 0u, true);
     }
+
+    PoolAllocator(PoolAllocator&& oth)            = default;
+    PoolAllocator& operator=(PoolAllocator&& oth) = default;
 
     u64 capacity() const { return m_capacity; }
     u64 slotsLeft() const { return m_slotsLeft; }

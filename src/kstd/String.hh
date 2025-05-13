@@ -14,12 +14,16 @@ template <u64 N> struct StringLiteral {
     char value[N];
 };
 
-enum class NameExtractionMode { withExtension, withoutExtension };
+enum class NameExtractionMode {
+    withExtension,
+    withoutFullExtension,
+    withoutLastExtensionChunk
+};
 enum class ExtensionExtractionMode { full, lastChunk };
 
 std::string nameFromPath(
   const std::string& path,
-  NameExtractionMode mode = NameExtractionMode::withoutExtension
+  NameExtractionMode mode = NameExtractionMode::withoutFullExtension
 );
 
 std::optional<std::string> extensionFromPath(

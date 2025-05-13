@@ -74,6 +74,7 @@ install(
         ${SRC}/Id.hh
         ${SRC}/Error.hh
         ${SRC}/Enum.hh
+        ${SRC}/Env.hh
     DESTINATION include/kstd)
 install(
     FILES 

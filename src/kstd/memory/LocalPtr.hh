@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstring>
+
 #include <utility>
 #include <type_traits>
 

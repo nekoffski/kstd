@@ -20,6 +20,14 @@ TEST(ExtractingTests, extractNameFromPath) {
     ASSERT_EQ(kstd::nameFromPath("/home/user/file.json"), "file"s);
     ASSERT_EQ(
       kstd::nameFromPath(
+        "/home/user/file.test.json",
+        kstd::NameExtractionMode::withoutLastExtensionChunk
+      ),
+      "file.test"s
+    );
+    ASSERT_EQ(kstd::nameFromPath("/home/user/file.test.json"), "file"s);
+    ASSERT_EQ(
+      kstd::nameFromPath(
         "/home/user/file.json", kstd::NameExtractionMode::withExtension
       ),
       "file.json"s

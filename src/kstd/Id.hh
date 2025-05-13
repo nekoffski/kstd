@@ -114,6 +114,9 @@ public:
         );
     }
 
+    NamedResource(NamedResource&& oth)            = default;
+    NamedResource& operator=(NamedResource&& oth) = default;
+
     const std::string& getName() const { return m_name; }
 
     void setName(const std::string& name)

@@ -3,6 +3,8 @@
 #include <ranges>
 #include <functional>
 
+#include "Concepts.hh"
+
 namespace kstd {
 
 namespace details {
@@ -29,7 +31,7 @@ template <typename... Ts> struct Overloader : Ts... {
     using Ts::operator()...;
 };
 
-class GuardCall {
+class GuardCall : public NonCopyable, public NonMovable {
 public:
     GuardCall() : m_callback([]() {}) {}
 

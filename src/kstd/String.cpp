@@ -22,7 +22,9 @@ std::string nameFromPath(const std::string& path, NameExtractionMode mode) {
     const auto end =
       mode == NameExtractionMode::withExtension
         ? path.npos
-        : path.find_first_of('.', begin);
+        : (mode == NameExtractionMode::withoutFullExtension
+             ? path.find_first_of('.')
+             : path.find_last_of('.'));
     return path.substr(begin, end - begin);
 }
 
