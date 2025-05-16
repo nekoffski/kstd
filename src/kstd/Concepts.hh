@@ -29,4 +29,17 @@ concept OneOf = requires() {
     { (std::is_same_v<T, Ts> || ...) };
 };
 
+template <typename T>
+concept Iterable = requires(T& t) {
+    { t.begin() };
+    { t.end() };
+    { t.cbegin() };
+    { t.cend() };
+};
+
+template <typename T>
+concept Countable = requires(T& t) {
+    { t.size() };
+};
+
 }  // namespace kstd

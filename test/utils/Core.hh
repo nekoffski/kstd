@@ -7,6 +7,8 @@
 #include "kstd/memory/Allocator.hh"
 #include "kstd/memory/Mallocator.hh"
 
+#define ASSERT_NULLPTR(a) ASSERT_EQ((a), nullptr)
+
 struct Base {
     inline static bool called    = false;
     inline static bool destroyed = false;
