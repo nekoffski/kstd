@@ -8,6 +8,7 @@
 #include "kstd/memory/Mallocator.hh"
 
 #define ASSERT_NULLPTR(a) ASSERT_EQ((a), nullptr)
+#define ASSERT_NOT_NULLPTR(a) ASSERT_NE((a), nullptr)
 
 struct Base {
     inline static bool called    = false;

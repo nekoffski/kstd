@@ -55,6 +55,8 @@ public:
 
     T& operator*() { return *m_pointer; }
     const T& operator*() const { return *m_pointer; }
+    T& value() { return *m_pointer; };
+    const T& value() const { return *m_pointer; };
 
     T* operator->() { return m_pointer; }
     const T* operator->() const { return m_pointer; }

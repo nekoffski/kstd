@@ -44,7 +44,7 @@ TYPED_TEST(FlatMapTests, get) {
 
     this->fm.insert("a", 1);
 
-    ASSERT_NE(this->fm.get("a"), nullptr);
+    ASSERT_NOT_NULLPTR(this->fm.get("a"));
     ASSERT_EQ(*this->fm.get("a"), 1);
 }
 
@@ -61,6 +61,14 @@ TYPED_TEST(FlatMapTests, put) {
 TYPED_TEST(FlatMapTests, insertTwice) {
     ASSERT_NE(this->fm.insert("a", 1), nullptr);
     ASSERT_EQ(this->fm.insert("a", 1), nullptr);
+}
+
+TYPED_TEST(FlatMapTests, erase) {
+    this->fm.insert("a", 1);
+    ASSERT_NOT_NULLPTR(this->fm.get("a"));
+
+    this->fm.erase("a");
+    ASSERT_NULLPTR(this->fm.get("a"));
 }
 
 TYPED_TEST(FlatMapTests, forEach) {

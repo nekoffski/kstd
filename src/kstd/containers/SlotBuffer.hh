@@ -9,11 +9,9 @@
 
 namespace kstd {
 
-template <typename T, u64 Capacity> class SlotBuffer : public NonCopyable {
-    static_assert(Capacity > 0);
+namespace details {
 
-    using Slot = LocalPtr<T>;
-
+template <typename T> class SlotBuffer : public NonCopyable {
 public:
     using value_type = T;
 
@@ -25,10 +23,8 @@ public:
         using pointer           = T*;
         using reference         = T&;
 
-        Iterator(
-          typename std::array<Slot, Capacity>::iterator current,
-          typename std::array<Slot, Capacity>::iterator end
-        ) : m_current(current), m_end(end) {
+        Iterator(LocalPtr<T>* current, LocalPtr<T>* end) :
+            m_current(current), m_end(end) {
             advanceToValid();
         }
 
@@ -60,8 +56,8 @@ public:
             while (m_current != m_end && !*m_current) ++m_current;
         }
 
-        typename std::array<Slot, Capacity>::iterator m_current;
-        typename std::array<Slot, Capacity>::iterator m_end;
+        LocalPtr<T>* m_current;
+        LocalPtr<T>* m_end;
     };
 
     class ConstIterator {
@@ -72,10 +68,8 @@ public:
         using pointer           = T*;
         using reference         = T&;
 
-        ConstIterator(
-          typename std::array<Slot, Capacity>::const_iterator current,
-          typename std::array<Slot, Capacity>::const_iterator end
-        ) : m_current(current), m_end(end) {
+        ConstIterator(LocalPtr<T>* current, LocalPtr<T>* end) :
+            m_current(current), m_end(end) {
             advanceToValid();
         }
 
@@ -107,31 +101,26 @@ public:
             while (m_current != m_end && !*m_current) ++m_current;
         }
 
-        typename std::array<Slot, Capacity>::const_iterator m_current;
-        typename std::array<Slot, Capacity>::const_iterator m_end;
+        LocalPtr<T>* m_current;
+        LocalPtr<T>* m_end;
     };
 
-    explicit SlotBuffer() { clear(); }
+    explicit SlotBuffer(LocalPtr<T>* begin, LocalPtr<T>* end, u64 capacity) :
+        m_begin(begin), m_end(end), m_capacity(capacity) {
+        clear();
+    }
 
     SlotBuffer(SlotBuffer&& oth)            = default;
     SlotBuffer& operator=(SlotBuffer&& oth) = default;
 
-    Iterator begin() { return Iterator{ m_slots.begin(), m_slots.end() }; }
-    Iterator end() { return Iterator{ m_slots.end(), m_slots.end() }; }
+    Iterator begin() { return Iterator{ m_begin, m_end }; }
+    Iterator end() { return Iterator{ m_end, m_end }; }
 
-    ConstIterator begin() const {
-        return ConstIterator{ m_slots.begin(), m_slots.end() };
-    }
-    ConstIterator end() const {
-        return ConstIterator{ m_slots.end(), m_slots.end() };
-    }
+    ConstIterator begin() const { return ConstIterator{ m_begin, m_end }; }
+    ConstIterator end() const { return ConstIterator{ m_end, m_end }; }
 
-    ConstIterator cbegin() const {
-        return ConstIterator{ m_slots.begin(), m_slots.end() };
-    }
-    ConstIterator cend() const {
-        return ConstIterator{ m_slots.end(), m_slots.end() };
-    }
+    ConstIterator cbegin() const { return ConstIterator{ m_begin, m_end }; }
+    ConstIterator cend() const { return ConstIterator{ m_end, m_end }; }
 
     T* insert(T&& v) {
         if (full()) return nullptr;
@@ -154,57 +143,57 @@ public:
         std::queue<u64> empty;
         std::swap(m_freeSlots, empty);
 
-        for (auto& slot : m_slots) slot.clear();
-        for (u64 i = 0; i < Capacity; ++i) m_freeSlots.push(i);
+        for (auto it = m_begin; it != m_end; it++) it->clear();
+        for (u64 i = 0; i < m_capacity; ++i) m_freeSlots.push(i);
     }
 
-    constexpr u64 capacity() const { return Capacity; }
-    u64 size() const { return Capacity - freeSlots(); }
+    u64 capacity() const { return m_capacity; }
+    u64 size() const { return m_capacity - freeSlots(); }
     u64 freeSlots() const { return m_freeSlots.size(); }
 
     bool full() const { return freeSlots() == 0; }
-    bool empty() const { return freeSlots() == Capacity; }
+    bool empty() const { return freeSlots() == m_capacity; }
 
     template <typename Callback>
     requires Callable<Callback, bool, const T&>
     const T* findIf(Callback&& callback) const {
-        for (const auto& slot : m_slots)
-            if (slot && callback(*slot)) return slot.get();
+        for (auto it = m_begin; it != m_end; it++)
+            if (not it->empty() && callback(it->value())) return it->get();
         return nullptr;
     }
 
     template <typename Callback>
     requires Callable<Callback, bool, T&>
     T* findIf(Callback&& callback) {
-        for (auto& slot : m_slots)
-            if (slot && callback(*slot)) return slot.get();
+        for (auto it = m_begin; it != m_end; it++)
+            if (not it->empty() && callback(it->value())) return it->get();
         return nullptr;
     }
 
     template <typename Callback>
     requires Callable<Callback, void, const T&>
     void forEach(Callback&& callback) const {
-        for (auto& slot : m_slots)
-            if (slot) callback(*slot);
+        for (auto it = m_begin; it != m_end; it++)
+            if (not it->empty()) callback(it->value());
     }
 
     template <typename Callback>
     requires Callable<Callback, void, T&>
     void forEach(Callback&& callback) {
-        for (auto& slot : m_slots)
-            if (slot) callback(*slot);
+        for (auto it = m_begin; it != m_end; it++)
+            if (not it->empty()) callback(it->value());
     }
 
     template <typename Callback>
     requires Callable<Callback, bool, const T&>
     void eraseIf(Callback&& callback) {
-        for (auto& slot : m_slots)
-            if (slot && callback(*slot)) slot.clear();
+        for (auto it = m_begin; it != m_end; it++)
+            if (not it->empty() && callback(it->value())) it->clear();
     }
 
     void erase(T& v) {
-        for (u64 i = 0; i < Capacity; ++i) {
-            if (auto& slot = m_slots[i]; slot.get() == &v) {
+        for (u64 i = 0; i < m_capacity; ++i) {
+            if (auto& slot = *(m_begin + i); slot.get() == &v) {
                 slot.clear();
                 m_freeSlots.push(i);
                 return;
@@ -213,14 +202,49 @@ public:
     }
 
 private:
-    Slot& getSlot() {
+    LocalPtr<T>& getSlot() {
         auto id = m_freeSlots.front();
         m_freeSlots.pop();
-        return m_slots[id];
+        return *(m_begin + id);
     }
 
-    std::array<Slot, Capacity> m_slots;
     std::queue<u64> m_freeSlots;
+    LocalPtr<T>* m_begin;
+    LocalPtr<T>* m_end;
+    u64 m_capacity;
+};
+
+template <typename T, u64 Capacity> struct StackStorage {
+    static_assert(Capacity > 0);
+    std::array<LocalPtr<T>, Capacity> buffer;
+};
+
+template <typename T> struct HeapStorage {
+    explicit HeapStorage(u64 capacity) : buffer(capacity) {}
+    std::vector<LocalPtr<T>> buffer;
+};
+
+}  // namespace details
+
+template <typename T, u64 Capacity>
+struct StackSlotBuffer
+    : private details::StackStorage<T, Capacity>,
+      public details::SlotBuffer<T> {
+    StackSlotBuffer() :
+        details::SlotBuffer<T>(
+          &(*this->buffer.begin()), &(*this->buffer.end()), Capacity
+        ) {}
+};
+
+template <typename T>
+struct HeapSlotBuffer
+    : private details::HeapStorage<T>,
+      public details::SlotBuffer<T> {
+    explicit HeapSlotBuffer(u64 capacity) :
+        details::HeapStorage<T>(capacity),
+        details::SlotBuffer<T>(
+          &(*this->buffer.begin()), &(*this->buffer.end()), capacity
+        ) {}
 };
 
 }  // namespace kstd

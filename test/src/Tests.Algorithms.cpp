@@ -18,7 +18,7 @@ TEST(TransformTests, vector) {
 }
 
 TEST(TransformTests, slotBuffer) {
-    kstd::SlotBuffer<int, 16> values;
+    kstd::StackSlotBuffer<int, 16> values;
     values.insert(1);
     values.insert(2);
     values.insert(3);

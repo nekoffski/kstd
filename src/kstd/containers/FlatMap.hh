@@ -72,6 +72,10 @@ public:
         return *insert(k, std::move(v));
     }
 
+    void erase(const K& k) {
+        m_buffer.eraseIf([&](auto& r) { return r.key == k; });
+    }
+
     void clear() { m_buffer.clear(); }
 
     u64 size() const { return m_buffer.size(); }
@@ -123,12 +127,18 @@ template <typename T> struct VectorAdapter {
             this->push_back(std::move(v));
             return &this->back();
         }
+
+        template <typename Callback>
+        requires Callable<Callback, bool, T&>
+        void eraseIf(Callback&& c) {
+            std::erase_if(*this, std::forward<Callback>(c));
+        }
     };
 };
 
 template <u64 Size> struct SlotBufferAdapter {
     template <typename T> struct Wrapper {
-        using Type = SlotBuffer<T, Size>;
+        using Type = StackSlotBuffer<T, Size>;
     };
 };
 

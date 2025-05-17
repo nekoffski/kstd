@@ -2,12 +2,42 @@
 
 #include "Core.hh"
 
+#include "kstd/memory/UniquePtr.hh"
+
 using namespace kstd;
 
-constexpr u32 defaultCapacity = 16;
+constexpr u32 defaultCapacity = 16u;
 
-TEST(SlotBufferTests, empty) {
-    SlotBuffer<int, defaultCapacity> sb;
+template <typename SlotBuffer> struct SlotBufferTests : testing::Test {
+    kstd::UniquePtr<SlotBuffer> sb;
+
+    void SetUp() {
+        if constexpr (std::is_same_v<
+                        SlotBuffer, StackSlotBuffer<Foo, defaultCapacity>>) {
+            sb = kstd::makeUnique<StackSlotBuffer<Foo, defaultCapacity>>();
+        } else if constexpr (std::is_same_v<SlotBuffer, HeapSlotBuffer<Foo>>) {
+            sb = kstd::makeUnique<HeapSlotBuffer<Foo>>(defaultCapacity);
+        }
+    }
+};
+
+class NameGenerator {
+public:
+    template <typename T> static std::string GetName(int) {
+        if constexpr (std::is_same_v<T, StackSlotBuffer<Foo, defaultCapacity>>)
+            return "StackSlotBuffer";
+        else if constexpr (std::is_same_v<T, HeapSlotBuffer<Foo>>)
+            return "HeapSlotBuffer";
+    }
+};
+
+using TestTypes =
+  ::testing::Types<StackSlotBuffer<Foo, defaultCapacity>, HeapSlotBuffer<Foo>>;
+
+TYPED_TEST_SUITE(SlotBufferTests, TestTypes, NameGenerator);
+
+TYPED_TEST(SlotBufferTests, empty) {
+    auto& sb = *this->sb;
 
     ASSERT_TRUE(sb.empty());
     ASSERT_FALSE(sb.full());
@@ -16,11 +46,11 @@ TEST(SlotBufferTests, empty) {
     ASSERT_EQ(sb.size(), 0u);
 }
 
-TEST(SlotBufferTests, insertEraseSimple) {
-    SlotBuffer<int, defaultCapacity> sb;
+TYPED_TEST(SlotBufferTests, insertEraseSimple) {
+    auto& sb = *this->sb;
 
-    auto it = sb.insert(15);
-    ASSERT_EQ(*it, 15);
+    auto it = sb.insert(Foo{ 15, 1, 1 });
+    ASSERT_EQ(it->x, 15);
     ASSERT_EQ(sb.freeSlots(), defaultCapacity - 1);
     ASSERT_EQ(sb.size(), 1);
 
@@ -29,8 +59,8 @@ TEST(SlotBufferTests, insertEraseSimple) {
     ASSERT_EQ(sb.size(), 0);
 }
 
-TEST(SlotBufferTests, insertEmplace) {
-    SlotBuffer<Foo, defaultCapacity> sb;
+TYPED_TEST(SlotBufferTests, insertEmplace) {
+    auto& sb = *this->sb;
 
     sb.emplace(1, 2, 3);
 
@@ -45,8 +75,8 @@ TEST(SlotBufferTests, insertEmplace) {
     ASSERT_EQ(sb.size(), 5);
 }
 
-TEST(SlotBufferTests, find) {
-    SlotBuffer<Foo, defaultCapacity> sb;
+TYPED_TEST(SlotBufferTests, find) {
+    auto& sb = *this->sb;
 
     ASSERT_EQ(sb.findIf([](auto& f) { return f.x == 0; }), nullptr);
     sb.emplace(1, 2, 3);
@@ -61,24 +91,24 @@ TEST(SlotBufferTests, find) {
     ASSERT_EQ(sb.findIf([](auto& f) { return f.x == 0; }), nullptr);
 }
 
-TEST(SlotBufferTests, forEach) {
-    SlotBuffer<int, defaultCapacity> sb;
+TYPED_TEST(SlotBufferTests, forEach) {
+    auto& sb = *this->sb;
 
-    sb.insert(100);
-    sb.insert(101);
-    sb.insert(102);
+    sb.insert(Foo{ 100, 1, 1 });
+    sb.insert(Foo{ 101, 1, 1 });
+    sb.insert(Foo{ 102, 1, 1 });
 
     int sum = 0;
-    sb.forEach([&](int x) { sum += x; });
+    sb.forEach([&](Foo& x) { sum += x.x; });
     ASSERT_EQ(sum, 100 + 101 + 102);
 }
 
-TEST(SlotBufferTests, clear) {
-    SlotBuffer<int, defaultCapacity> sb;
+TYPED_TEST(SlotBufferTests, clear) {
+    auto& sb = *this->sb;
 
-    sb.insert(100);
-    sb.insert(101);
-    sb.insert(102);
+    sb.insert(Foo{ 100, 1, 1 });
+    sb.insert(Foo{ 101, 1, 1 });
+    sb.insert(Foo{ 102, 1, 1 });
     ASSERT_EQ(sb.size(), 3u);
 
     sb.clear();
@@ -86,30 +116,31 @@ TEST(SlotBufferTests, clear) {
     ASSERT_TRUE(sb.empty());
 }
 
-TEST(SlotBufferTests, iteratorsForLoop) {
-    SlotBuffer<int, defaultCapacity> sb;
-    sb.insert(100);
-    auto handle = sb.insert(101);
-    sb.insert(102);
+TYPED_TEST(SlotBufferTests, iteratorsForLoop) {
+    auto& sb = *this->sb;
+
+    sb.insert(Foo{ 100, 1, 1 });
+    auto handle = sb.insert(Foo{ 101, 1, 1 });
+    sb.insert(Foo{ 102, 1, 1 });
 
     int sum = 0;
-    for (auto& v : sb) sum += v;
+    for (auto& v : sb) sum += v.x;
     ASSERT_EQ(sum, 100 + 101 + 102);
 
     sum = 0;
     sb.erase(*handle);
-    for (const auto& v : sb) sum += v;
+    for (const auto& v : sb) sum += v.x;
     ASSERT_EQ(sum, 100 + 102);
 }
 
-TEST(SlotBufferTests, iteratorsFind) {
-    SlotBuffer<int, defaultCapacity> sb;
+TYPED_TEST(SlotBufferTests, iteratorsFind) {
+    auto& sb = *this->sb;
 
-    auto it = std::find_if(sb.begin(), sb.end(), [](int x) { return x == 5; });
+    auto it = std::find_if(sb.begin(), sb.end(), [](auto& f) { return f.x == 5; });
     ASSERT_EQ(it, sb.end());
 
-    sb.insert(5);
-    it = std::find_if(sb.begin(), sb.end(), [](const auto& x) { return x == 5; });
+    sb.insert(Foo{ 5, 1, 1 });
+    it = std::find_if(sb.begin(), sb.end(), [](const auto& f) { return f.x == 5; });
     ASSERT_NE(it, sb.end());
-    ASSERT_EQ(*it, 5);
+    ASSERT_EQ(it->x, 5);
 }
