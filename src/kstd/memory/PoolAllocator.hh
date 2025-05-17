@@ -100,12 +100,12 @@ private:
     T* m_buffer;
 };
 
-class HeapStorage {
+class PoolHeapStorage {
 public:
-    explicit HeapStorage(u64 size, u64 alignment) noexcept :
+    explicit PoolHeapStorage(u64 size, u64 alignment) noexcept :
         m_buffer(static_cast<std::byte*>(std::aligned_alloc(alignment, size))) {}
 
-    ~HeapStorage() { delete m_buffer; }
+    ~PoolHeapStorage() { delete m_buffer; }
 
     std::byte* getBuffer() { return m_buffer; }
 
@@ -113,7 +113,7 @@ private:
     std::byte* m_buffer;
 };
 
-template <typename T, u64 Capacity> class StackStorage {
+template <typename T, u64 Capacity> class PoolStackStorage {
 public:
     std::byte* getBuffer() { return &m_buffer[0]; }
 
@@ -128,10 +128,10 @@ template <
   AllocatorReportStrategy ReportStrategy   = AllocatorReportStrategy::enabled,
   AllocatorFailureStrategy FailureStrategy = AllocatorFailureStrategy::panic>
 struct HeapPoolAllocator
-    : public details::HeapStorage,
+    : public details::PoolHeapStorage,
       public details::PoolAllocator<T, ReportStrategy, FailureStrategy> {
     explicit HeapPoolAllocator(u64 capacity) noexcept :
-        details::HeapStorage(sizeof(T) * capacity, alignof(T)),
+        details::PoolHeapStorage(sizeof(T) * capacity, alignof(T)),
         details::PoolAllocator<T, ReportStrategy, FailureStrategy>(
           capacity, getBuffer()
         ) {}
@@ -142,11 +142,11 @@ template <
   AllocatorReportStrategy ReportStrategy   = AllocatorReportStrategy::enabled,
   AllocatorFailureStrategy FailureStrategy = AllocatorFailureStrategy::panic>
 struct StackPoolAllocator
-    : public details::StackStorage<T, Capacity>,
+    : public details::PoolStackStorage<T, Capacity>,
       public details::PoolAllocator<T, ReportStrategy, FailureStrategy> {
     explicit StackPoolAllocator() noexcept :
         details::PoolAllocator<T, ReportStrategy, FailureStrategy>(
-          Capacity, details::StackStorage<T, Capacity>::getBuffer()
+          Capacity, details::PoolStackStorage<T, Capacity>::getBuffer()
         ) {}
 };
 

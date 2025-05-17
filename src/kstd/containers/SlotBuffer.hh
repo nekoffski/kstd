@@ -214,13 +214,13 @@ private:
     u64 m_capacity;
 };
 
-template <typename T, u64 Capacity> struct StackStorage {
+template <typename T, u64 Capacity> struct SlotBufferStackStorage {
     static_assert(Capacity > 0);
     std::array<LocalPtr<T>, Capacity> buffer;
 };
 
-template <typename T> struct HeapStorage {
-    explicit HeapStorage(u64 capacity) : buffer(capacity) {}
+template <typename T> struct SlotBufferHeapStorage {
+    explicit SlotBufferHeapStorage(u64 capacity) : buffer(capacity) {}
     std::vector<LocalPtr<T>> buffer;
 };
 
@@ -228,7 +228,7 @@ template <typename T> struct HeapStorage {
 
 template <typename T, u64 Capacity>
 struct StackSlotBuffer
-    : private details::StackStorage<T, Capacity>,
+    : private details::SlotBufferStackStorage<T, Capacity>,
       public details::SlotBuffer<T> {
     StackSlotBuffer() :
         details::SlotBuffer<T>(
@@ -238,10 +238,10 @@ struct StackSlotBuffer
 
 template <typename T>
 struct HeapSlotBuffer
-    : private details::HeapStorage<T>,
+    : private details::SlotBufferHeapStorage<T>,
       public details::SlotBuffer<T> {
     explicit HeapSlotBuffer(u64 capacity) :
-        details::HeapStorage<T>(capacity),
+        details::SlotBufferHeapStorage<T>(capacity),
         details::SlotBuffer<T>(
           &(*this->buffer.begin()), &(*this->buffer.end()), capacity
         ) {}
