@@ -1,9 +1,10 @@
 #pragma once
 
-#include "kstd/Concepts.hh"
 #include "kstd/memory/Allocator.hh"
 #include "kstd/memory/Mallocator.hh"
+#include "kstd/Concepts.hh"
 #include "kstd/Log.hh"
+#include "kstd/Scope.hh"
 
 namespace kstd {
 
@@ -27,16 +28,19 @@ public:
         m_head = nullptr;
     }
 
-    void erase(Node* node) {
+    Node* erase(Node* node) {
+        ON_SCOPE_EXIT { destroyNode(node); };
+
         if (m_head == node) {
             m_head = node->next;
+            return m_head;
         } else {
             auto prev  = node->prev;
             auto next  = node->next;
             prev->next = next;
             if (next != nullptr) next->prev = prev;
+            return next;
         }
-        destroyNode(node);
     }
 
     template <typename Callback>
@@ -172,15 +176,5 @@ private:
     u64 m_size;
     Node* m_head;
 };
-
-template <typename T>
-DoublyLinkedList<T>::Node* next(typename DoublyLinkedList<T>::Node* node) {
-    return node->next;
-}
-
-template <typename T>
-DoublyLinkedList<T>::Node* prev(typename DoublyLinkedList<T>::Node* node) {
-    return node->prev;
-}
 
 }  // namespace kstd

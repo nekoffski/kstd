@@ -5,21 +5,14 @@
 #include <optional>
 
 #include "kstd/Core.hh"
+#include "kstd/containers/DoublyLinkedList.hh"
 
 namespace kstd {
 
-// TODO: requires some refactoring, this is a copy-paste from Starlight
 class FreeBlockList {
-    struct Node {
-        explicit Node();
-
-        bool free;
-        u64 offset;
-        u64 size;
-        Node* next;
-    };
-
 public:
+    static constexpr u64 minBlockSize = 64u;
+
     struct Block {
         u64 offset;
         u64 size;
@@ -34,13 +27,11 @@ public:
     void clear();
 
 private:
-    Node* getFreeNode();
+    void defragment();
 
-    u64 m_totalSize;
-    u64 m_maxEntries;
-
-    std::vector<Node> m_nodes;
-    Node* m_head;
+    u64 m_spaceLeft;
+    u64 m_size;
+    DoublyLinkedList<Block> m_blocks;
 };
 
 }  // namespace kstd
