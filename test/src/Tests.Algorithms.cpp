@@ -7,9 +7,23 @@
 
 using namespace kstd;
 
+TEST(FilterTests, vector) {
+    std::vector<int> values = { 1, 2, 3, 4 };
+    auto filtered           = filter(values, [](int x) { return x % 2 == 0; });
+    ASSERT_EQ(filtered.size(), 2);
+    ASSERT_EQ(filtered[0], 2);
+    ASSERT_EQ(filtered[1], 4);
+
+    filtered =
+      filter(std::vector<int>{ 1, 2, 3, 4 }, [](int x) { return x % 2 == 0; });
+    ASSERT_EQ(filtered.size(), 2);
+    ASSERT_EQ(filtered[0], 2);
+    ASSERT_EQ(filtered[1], 4);
+}
+
 TEST(TransformTests, vector) {
     std::vector<int> values = { 1, 2, 3, 4 };
-    auto out = transform(values, [&](auto& x) -> float { return x * 2.0f; });
+    auto out = transform(values, [&](const auto& x) -> float { return x * 2.0f; });
     for (int i = 0; i < values.size(); ++i) ASSERT_EQ(out[i], values[i] * 2.0f);
 
     const std::vector<int> cvalues = { 1, 2, 3, 4 };

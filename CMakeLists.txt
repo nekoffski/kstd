@@ -75,7 +75,15 @@ install(
         ${SRC}/Error.hh
         ${SRC}/Enum.hh
         ${SRC}/Env.hh
+        ${SRC}/Algorithms.hh
     DESTINATION include/kstd)
+install(
+    FILES 
+        ${SRC}/containers/DoublyLinkedList.hh
+        ${SRC}/containers/FlatMap.hh
+        ${SRC}/containers/FreeBlockList.hh
+        ${SRC}/containers/SlotBuffer.hh
+    DESTINATION include/kstd/containers)
 install(
     FILES 
         ${SRC}/memory/AlignedAllocator.hh

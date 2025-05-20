@@ -1,7 +1,6 @@
 #include "Utils.hh"
 
 #include <boost/asio/consign.hpp>
-#include <boost/asio/steady_timer.hpp>
 #include <memory>
 
 namespace kstd {
@@ -23,5 +22,12 @@ Coro<void> asyncSleep(std::chrono::nanoseconds duration) {
       co_await boost::asio::this_coro::executor, duration, boost::asio::use_awaitable
     );
 }
+
+Coro<void> AsyncTimer::sleep(std::chrono::nanoseconds duration) {
+    m_timer.expires_after(duration);
+    co_await m_timer.async_wait(boost::asio::use_awaitable);
+}
+
+void AsyncTimer::cancel() { m_timer.cancel(); }
 
 }  // namespace kstd

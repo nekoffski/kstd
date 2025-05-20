@@ -110,8 +110,8 @@ TYPED_TEST(FlatMapTests, getValues) {
 
     auto values = this->fm.getValues();
     ASSERT_EQ(values.size(), 2);
-    ASSERT_EQ(*values[0], 1);
-    ASSERT_EQ(*values[1], 2);
+    ASSERT_EQ(values[0], 1);
+    ASSERT_EQ(values[1], 2);
 
     auto transformedValues = this->fm.getValues([](auto x) { return x * 2; });
     ASSERT_EQ(transformedValues.size(), 2);

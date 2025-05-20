@@ -17,15 +17,14 @@ class FlatMap : public NonCopyable {
         V value;
     };
 
-    struct IdentityTransformer {
-        V* operator()(V& v) { return &v; }
-    };
-
 public:
     explicit FlatMap() = default;
 
     FlatMap(FlatMap&& oth)            = default;
     FlatMap& operator=(FlatMap&& oth) = default;
+
+    bool has(const K& k) const { return contains(k); }
+    bool contains(const K& k) const { return get(k) != nullptr; }
 
     V* get(const K& k) {
         auto it = std::find_if(m_buffer.begin(), m_buffer.end(), [&](auto& r) {
@@ -87,10 +86,21 @@ public:
         });
     }
 
-    template <typename Transformation = IdentityTransformer>
-    auto getValues(Transformation&& t = IdentityTransformer{})
-      -> std::vector<std::result_of_t<Transformation(V&)>> {
-        return transform(m_buffer, [&](Record& record) { return t(record.value); });
+    std::vector<V> getValues() {
+        return transform(m_buffer, [&](const Record& record) -> V {
+            return record.value;
+        });
+    }
+
+    template <typename Pred>
+    auto getValues(Pred&& pred) -> std::vector<std::result_of_t<Pred(V&)>> {
+        return transform(m_buffer, [&](const Record& record) {
+            return pred(record.value);
+        });
+    }
+
+    template <typename Pred> std::vector<V> filterValues(Pred&& pred) {
+        return filter(getValues(), pred);
     }
 
     template <typename Callback>

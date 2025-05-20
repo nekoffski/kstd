@@ -51,6 +51,8 @@ public:
             };
         }
 
+        void cancel();
+
         Coro<UniquePtr<AsyncMessage>> wait();
 
     private:

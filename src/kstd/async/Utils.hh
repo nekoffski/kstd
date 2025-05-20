@@ -8,6 +8,7 @@
 #include <boost/asio/any_io_executor.hpp>
 #include <boost/asio/async_result.hpp>
 #include <boost/asio/error.hpp>
+#include <boost/asio/steady_timer.hpp>
 
 namespace kstd {
 
@@ -30,6 +31,17 @@ inline auto asyncSleep(
 }
 
 }  // namespace details
+
+class AsyncTimer {
+public:
+    template <typename Executor> AsyncTimer(const Executor& ex) : m_timer(ex) {}
+
+    Coro<void> sleep(std::chrono::nanoseconds duration);
+    void cancel();
+
+private:
+    boost::asio::steady_timer m_timer;
+};
 
 Coro<void> asyncSleep(std::chrono::nanoseconds duration);
 

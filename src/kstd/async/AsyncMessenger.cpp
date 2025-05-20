@@ -33,6 +33,8 @@ Coro<UniquePtr<AsyncMessage>> AsyncMessenger::Queue::wait() {
 
 AsyncMessenger::Channel& AsyncMessenger::Queue::getChannel() { return m_channel; }
 
+void AsyncMessenger::Queue::cancel() { m_channel.cancel(); }
+
 AsyncMessenger::Queue::Queue(AsyncMessenger& messenger
 ) : m_messenger(messenger), m_channel(m_messenger.getExecutor(), channelSize) {}
 
