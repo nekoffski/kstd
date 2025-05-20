@@ -31,13 +31,9 @@ public:
         rhs.resetBuffer();
     }
 
-    LocalPtr& operator=(LocalPtr&& rhs) {
+    LocalPtr& operator=(const LocalPtr& oth) {
         clear();
-
-        using std::swap;
-        swap(rhs.m_buffer, m_buffer);
-        m_pointer     = (T*)&m_buffer;
-        rhs.m_pointer = nullptr;
+        emplace();
 
         return *this;
     }

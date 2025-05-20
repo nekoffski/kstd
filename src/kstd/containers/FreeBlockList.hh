@@ -11,7 +11,7 @@ namespace kstd {
 
 class FreeBlockList {
 public:
-    static constexpr u64 minBlockSize = 64u;
+    static constexpr u64 minBlockSize = 8u;
 
     struct Block {
         u64 offset;

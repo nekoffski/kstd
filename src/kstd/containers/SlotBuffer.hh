@@ -11,7 +11,7 @@ namespace kstd {
 
 namespace details {
 
-template <typename T> class SlotBuffer : public NonCopyable {
+template <typename T, typename Storage> class SlotBuffer {
 public:
     using value_type = T;
 
@@ -105,13 +105,37 @@ public:
         LocalPtr<T>* m_end;
     };
 
-    explicit SlotBuffer(LocalPtr<T>* begin, LocalPtr<T>* end, u64 capacity) :
-        m_begin(begin), m_end(end), m_capacity(capacity) {
+    explicit SlotBuffer(u64 capacity) :
+        m_storage(capacity), m_begin(&(*m_storage.buffer.begin())),
+        m_end(&(*m_storage.buffer.end())), m_capacity(capacity) {
         clear();
     }
 
-    SlotBuffer(SlotBuffer&& oth)            = default;
-    SlotBuffer& operator=(SlotBuffer&& oth) = default;
+    SlotBuffer(SlotBuffer&& oth) :
+        m_storage(std::move(oth.m_storage)), m_freeSlots(std::move(oth.m_freeSlots)),
+        m_begin(&(*m_storage.buffer.begin())), m_end(&(*m_storage.buffer.end())),
+        m_capacity(oth.m_capacity) {}
+
+    SlotBuffer& operator=(SlotBuffer&& oth) {
+        m_storage   = std::move(oth.m_storage);
+        m_freeSlots = std::move(oth.m_freeSlots);
+        m_begin     = &(*m_storage.buffer.begin());
+        m_end       = &(*m_storage.buffer.end());
+        m_capacity  = oth.m_capacity;
+    }
+
+    SlotBuffer(const SlotBuffer& oth) :
+        m_storage(oth.m_storage), m_freeSlots(oth.m_freeSlots),
+        m_begin(&(*m_storage.buffer.begin())), m_end(&(*m_storage.buffer.end())),
+        m_capacity(oth.m_capacity) {}
+
+    SlotBuffer& operator=(const SlotBuffer& oth) {
+        m_storage   = oth.m_storage;
+        m_freeSlots = oth.m_freeSlots;
+        m_begin     = &(*m_storage.buffer.begin());
+        m_end       = &(*m_storage.buffer.end());
+        m_capacity  = oth.m_capacity;
+    }
 
     Iterator begin() { return Iterator{ m_begin, m_end }; }
     Iterator end() { return Iterator{ m_end, m_end }; }
@@ -201,13 +225,14 @@ public:
         }
     }
 
-private:
+protected:
     LocalPtr<T>& getSlot() {
         auto id = m_freeSlots.front();
         m_freeSlots.pop();
         return *(m_begin + id);
     }
 
+    Storage m_storage;
     std::queue<u64> m_freeSlots;
     LocalPtr<T>* m_begin;
     LocalPtr<T>* m_end;
@@ -216,11 +241,45 @@ private:
 
 template <typename T, u64 Capacity> struct SlotBufferStackStorage {
     static_assert(Capacity > 0);
+
+    SlotBufferStackStorage([[maybe_unused]] u64 capacity) {}
+
+    SlotBufferStackStorage(SlotBufferStackStorage&& oth)            = default;
+    SlotBufferStackStorage& operator=(SlotBufferStackStorage&& oth) = default;
+
+    SlotBufferStackStorage(const SlotBufferStackStorage& oth) {
+        for (u64 i = 0; i < buffer.size(); ++i)
+            if (oth.buffer[i]) buffer[i].emplace(*oth.buffer[i]);
+    }
+
+    SlotBufferStackStorage& operator=(const SlotBufferStackStorage& oth) {
+        for (u64 i = 0; i < buffer.size(); ++i)
+            if (oth.buffer[i]) buffer[i].emplace(*oth.buffer[i]);
+        return *this;
+    }
+
     std::array<LocalPtr<T>, Capacity> buffer;
 };
 
 template <typename T> struct SlotBufferHeapStorage {
     explicit SlotBufferHeapStorage(u64 capacity) : buffer(capacity) {}
+
+    SlotBufferHeapStorage(SlotBufferHeapStorage&& oth)            = default;
+    SlotBufferHeapStorage& operator=(SlotBufferHeapStorage&& oth) = default;
+
+    SlotBufferHeapStorage(const SlotBufferHeapStorage& oth) {
+        buffer.resize(oth.buffer.size());
+        for (u64 i = 0; i < buffer.size(); ++i)
+            if (oth.buffer[i]) buffer[i].emplace(*oth.buffer[i]);
+    }
+
+    SlotBufferHeapStorage& operator=(const SlotBufferHeapStorage& oth) {
+        buffer.resize(oth.buffer.size());
+        for (u64 i = 0; i < buffer.size(); ++i)
+            if (oth.buffer[i]) buffer[i].emplace(*oth.buffer[i]);
+        return *this;
+    }
+
     std::vector<LocalPtr<T>> buffer;
 };
 
@@ -228,23 +287,17 @@ template <typename T> struct SlotBufferHeapStorage {
 
 template <typename T, u64 Capacity>
 struct StackSlotBuffer
-    : private details::SlotBufferStackStorage<T, Capacity>,
-      public details::SlotBuffer<T> {
+    : public details::SlotBuffer<T, details::SlotBufferStackStorage<T, Capacity>> {
     StackSlotBuffer() :
-        details::SlotBuffer<T>(
-          &(*this->buffer.begin()), &(*this->buffer.end()), Capacity
+        details::SlotBuffer<T, details::SlotBufferStackStorage<T, Capacity>>(Capacity
         ) {}
 };
 
 template <typename T>
 struct HeapSlotBuffer
-    : private details::SlotBufferHeapStorage<T>,
-      public details::SlotBuffer<T> {
-    explicit HeapSlotBuffer(u64 capacity) :
-        details::SlotBufferHeapStorage<T>(capacity),
-        details::SlotBuffer<T>(
-          &(*this->buffer.begin()), &(*this->buffer.end()), capacity
-        ) {}
+    : public details::SlotBuffer<T, details::SlotBufferHeapStorage<T>> {
+    explicit HeapSlotBuffer(u64 capacity
+    ) : details::SlotBuffer<T, details::SlotBufferHeapStorage<T>>(capacity) {}
 };
 
 }  // namespace kstd

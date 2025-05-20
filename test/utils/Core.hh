@@ -65,6 +65,10 @@ struct Foo {
     kstd::u8 x;
     kstd::u32 y;
     kstd::u64 z;
+
+    bool operator==(const Foo& oth) const {
+        return x == oth.x && y == oth.y && z == oth.z;
+    }
 };
 
 template <typename T = Foo> struct LifetimeProbe {

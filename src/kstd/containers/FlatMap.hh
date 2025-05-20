@@ -10,8 +10,7 @@ namespace kstd {
 
 namespace details {
 
-template <typename K, typename V, template <typename> class Buffer>
-class FlatMap : public NonCopyable {
+template <typename K, typename V, template <typename> class Buffer> class FlatMap {
     struct Record {
         K key;
         V value;
@@ -22,6 +21,9 @@ public:
 
     FlatMap(FlatMap&& oth)            = default;
     FlatMap& operator=(FlatMap&& oth) = default;
+
+    FlatMap(const FlatMap& oth)            = default;
+    FlatMap& operator=(const FlatMap& oth) = default;
 
     bool has(const K& k) const { return contains(k); }
     bool contains(const K& k) const { return get(k) != nullptr; }
