@@ -143,11 +143,27 @@ TYPED_TEST(SlotBufferTests, copy) {
     auto it1 = sb.findIf([](auto& v) { return v.x == 100; });
     auto it2 = sb2.findIf([](auto& v) { return v.x == 100; });
 
-    ASSERT_NOT_NULLPTR(it1);
-    ASSERT_NOT_NULLPTR(it2);
+    ASSERT_NO_NULLPTR(it1);
+    ASSERT_NO_NULLPTR(it2);
 
     ASSERT_EQ(*it1, *it2);
     ASSERT_NE(it1, it2);
+}
+
+TYPED_TEST(SlotBufferTests, move) {
+    auto& sb = *this->sb;
+    sb.insert(Foo{ 101, 1, 1 });
+
+    {
+        auto sb2 = sb;
+        sb2.insert(Foo{ 100, 1, 1 });
+        sb = std::move(sb2);
+    }
+
+    auto it1 = sb.findIf([](auto& v) { return v.x == 100; });
+    auto it2 = sb.findIf([](auto& v) { return v.x == 101; });
+    ASSERT_NO_NULLPTR(it1);
+    ASSERT_NO_NULLPTR(it2);
 }
 
 TYPED_TEST(SlotBufferTests, iteratorsFind) {

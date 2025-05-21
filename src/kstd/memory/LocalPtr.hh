@@ -6,6 +6,7 @@
 #include <type_traits>
 
 #include "kstd/Concepts.hh"
+#include "kstd/Log.hh"
 
 namespace kstd {
 
@@ -20,20 +21,24 @@ public:
         emplace(std::forward<Args>(args)...);
     }
 
-    LocalPtr(const T& v) { emplace(v); }
-    LocalPtr(T&& v) { emplace(std::move(v)); }
+    LocalPtr(LocalPtr&& rhs) : m_pointer(nullptr) {
+        resetBuffer();
 
-    LocalPtr(LocalPtr&& rhs) {
-        std::memcpy(m_buffer, rhs.m_buffer, sizeof(m_buffer));
-        m_pointer = (T*)&m_buffer;
-
-        rhs.m_pointer = nullptr;
-        rhs.resetBuffer();
+        if (rhs.m_pointer) {
+            m_pointer = new (m_buffer) T(std::move(*rhs.m_pointer));
+            rhs.clear();
+        }
     }
 
-    LocalPtr& operator=(const LocalPtr& oth) {
+    LocalPtr& operator=(LocalPtr&& rhs) {
         clear();
-        emplace();
+        resetBuffer();
+        m_pointer = nullptr;
+
+        if (rhs.m_pointer) {
+            m_pointer = new (m_buffer) T(std::move(*rhs.m_pointer));
+            rhs.clear();
+        }
 
         return *this;
     }
@@ -61,9 +66,11 @@ public:
     operator bool() const { return not empty(); }
 
     void clear() {
-        if (m_pointer) m_pointer->~T();
-        m_pointer = nullptr;
-        resetBuffer();
+        if (m_pointer) {
+            m_pointer->~T();
+            m_pointer = nullptr;
+            resetBuffer();
+        }
     }
 
 private:

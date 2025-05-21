@@ -8,7 +8,7 @@
 #include "kstd/memory/Mallocator.hh"
 
 #define ASSERT_NULLPTR(a) ASSERT_EQ((a), nullptr)
-#define ASSERT_NOT_NULLPTR(a) ASSERT_NE((a), nullptr)
+#define ASSERT_NO_NULLPTR(a) ASSERT_NE((a), nullptr)
 
 struct Base {
     inline static bool called    = false;
@@ -65,9 +65,10 @@ struct Foo {
     kstd::u8 x;
     kstd::u32 y;
     kstd::u64 z;
+    std::string w = "abce";
 
     bool operator==(const Foo& oth) const {
-        return x == oth.x && y == oth.y && z == oth.z;
+        return x == oth.x && y == oth.y && z == oth.z && w == oth.w;
     }
 };
 
@@ -90,8 +91,10 @@ template <typename T = Foo> struct LifetimeProbe {
     }
 
     ~LifetimeProbe() { ++dctorCalls; }
-    LifetimeProbe(const LifetimeProbe&) { ++copyCtorCalls; }
-    LifetimeProbe(LifetimeProbe&&) { ++moveCtorCalls; }
+    LifetimeProbe(const LifetimeProbe& oth) : value(oth.value) { ++copyCtorCalls; }
+    LifetimeProbe(LifetimeProbe&& oth) : value(std::move(oth.value)) {
+        ++moveCtorCalls;
+    }
 
     T value;
 };

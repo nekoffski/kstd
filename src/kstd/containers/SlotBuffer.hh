@@ -122,6 +122,7 @@ public:
         m_begin     = &(*m_storage.buffer.begin());
         m_end       = &(*m_storage.buffer.end());
         m_capacity  = oth.m_capacity;
+        return *this;
     }
 
     SlotBuffer(const SlotBuffer& oth) :
@@ -135,6 +136,7 @@ public:
         m_begin     = &(*m_storage.buffer.begin());
         m_end       = &(*m_storage.buffer.end());
         m_capacity  = oth.m_capacity;
+        return *this;
     }
 
     Iterator begin() { return Iterator{ m_begin, m_end }; }

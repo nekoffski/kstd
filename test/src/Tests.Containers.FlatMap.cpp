@@ -44,7 +44,7 @@ TYPED_TEST(FlatMapTests, get) {
 
     this->fm.insert("a", 1);
 
-    ASSERT_NOT_NULLPTR(this->fm.get("a"));
+    ASSERT_NO_NULLPTR(this->fm.get("a"));
     ASSERT_EQ(*this->fm.get("a"), 1);
 }
 
@@ -65,7 +65,7 @@ TYPED_TEST(FlatMapTests, insertTwice) {
 
 TYPED_TEST(FlatMapTests, erase) {
     this->fm.insert("a", 1);
-    ASSERT_NOT_NULLPTR(this->fm.get("a"));
+    ASSERT_NO_NULLPTR(this->fm.get("a"));
 
     this->fm.erase("a");
     ASSERT_NULLPTR(this->fm.get("a"));
@@ -117,4 +117,20 @@ TYPED_TEST(FlatMapTests, getValues) {
     ASSERT_EQ(transformedValues.size(), 2);
     ASSERT_EQ(transformedValues[0], 2);
     ASSERT_EQ(transformedValues[1], 4);
+}
+
+TYPED_TEST(FlatMapTests, move) {
+    this->fm.insert("a", 1);
+    this->fm.insert("b", 2);
+
+    auto fm2 = this->fm;
+
+    {
+        fm2.insert("c", 3);
+        this->fm = std::move(fm2);
+    }
+
+    ASSERT_NO_NULLPTR(this->fm.get("a"));
+    ASSERT_NO_NULLPTR(this->fm.get("b"));
+    ASSERT_NO_NULLPTR(this->fm.get("c"));
 }

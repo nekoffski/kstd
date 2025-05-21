@@ -45,25 +45,25 @@ TEST_F(LocalPtrTests, clear) {
 }
 
 TEST_F(LocalPtrTests, move) {
-    LocalPtr<LifetimeProbe<int>> ptr{ 1 };
-    LocalPtr<LifetimeProbe<int>> ptr2{ 2 };
-    ASSERT_EQ(LifetimeProbe<int>::ctorCalls, 2u);
-    ASSERT_EQ(LifetimeProbe<int>::dctorCalls, 0u);
+    LocalPtr<LifetimeProbe<std::string>> ptr{ "a" };
+    LocalPtr<LifetimeProbe<std::string>> ptr2{ "b" };
+    ASSERT_EQ(LifetimeProbe<std::string>::ctorCalls, 2u);
+    ASSERT_EQ(LifetimeProbe<std::string>::dctorCalls, 0u);
 
-    ASSERT_EQ((*ptr).value, 1);
+    ASSERT_EQ((*ptr).value, "a");
 
     auto ptr3 = std::move(ptr);
-    ASSERT_EQ(LifetimeProbe<int>::ctorCalls, 2u);
-    ASSERT_EQ(LifetimeProbe<int>::dctorCalls, 0u);
+    ASSERT_EQ(LifetimeProbe<std::string>::ctorCalls, 2u);
+    ASSERT_EQ(LifetimeProbe<std::string>::dctorCalls, 1u);
 
-    ASSERT_EQ((*ptr3).value, 1);
+    ASSERT_EQ((*ptr3).value, "a");
     ptr3 = std::move(ptr2);
 
-    ASSERT_EQ((*ptr3).value, 2);
-    ASSERT_EQ(LifetimeProbe<int>::ctorCalls, 2u);
-    ASSERT_EQ(LifetimeProbe<int>::dctorCalls, 1u);
+    ASSERT_EQ((*ptr3).value, "b");
+    ASSERT_EQ(LifetimeProbe<std::string>::ctorCalls, 2u);
+    ASSERT_EQ(LifetimeProbe<std::string>::dctorCalls, 3u);
 
     ptr3.clear();
-    ASSERT_EQ(LifetimeProbe<int>::ctorCalls, 2u);
-    ASSERT_EQ(LifetimeProbe<int>::dctorCalls, 2u);
+    ASSERT_EQ(LifetimeProbe<std::string>::ctorCalls, 2u);
+    ASSERT_EQ(LifetimeProbe<std::string>::dctorCalls, 4u);
 }
