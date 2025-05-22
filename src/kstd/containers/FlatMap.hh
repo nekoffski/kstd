@@ -25,6 +25,15 @@ public:
     FlatMap(const FlatMap& oth)            = default;
     FlatMap& operator=(const FlatMap& oth) = default;
 
+    auto begin() { return m_buffer.begin(); }
+    auto end() { return m_buffer.end(); }
+
+    auto cbegin() { return m_buffer.cbegin(); }
+    auto cend() { return m_buffer.cend(); }
+
+    auto begin() const { return m_buffer.begin(); }
+    auto end() const { return m_buffer.end(); }
+
     bool has(const K& k) const { return contains(k); }
     bool contains(const K& k) const { return get(k) != nullptr; }
 
