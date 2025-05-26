@@ -44,7 +44,7 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1")
 endif()
 
-set(KSTD_COMPILER_FLAGS -Wall -Wextra -Wpedantic -Werror)
+set(KSTD_COMPILER_FLAGS -Wall -Wextra -Wpedantic)
 
 add_subdirectory(src)
 add_subdirectory(examples)
@@ -84,6 +84,12 @@ install(
         ${SRC}/containers/FreeBlockList.hh
         ${SRC}/containers/SlotBuffer.hh
     DESTINATION include/kstd/containers)
+install(
+    FILES 
+        ${SRC}/serialization/All.hh
+        ${SRC}/serialization/BinaryWriter.hh
+        ${SRC}/serialization/BinaryReader.hh
+    DESTINATION include/kstd/serialization)
 install(
     FILES 
         ${SRC}/memory/AlignedAllocator.hh

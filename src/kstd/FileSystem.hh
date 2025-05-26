@@ -5,31 +5,26 @@
 #include <vector>
 
 #include "Singleton.hh"
+#include "serialization/Core.hh"
 
 namespace kstd {
 
-class FileSystem {
-public:
-    enum class WritePolicy { override, noOverride };
-    using Path = std::string;
+using Path = std::string;
 
-    virtual bool isFile(const Path& path) const;
-    virtual bool isDirectory(const Path& path) const;
-    virtual std::vector<Path> listDirectory(const Path& path) const;
+bool isFile(const Path& path);
+bool isDirectory(const Path& path);
+std::vector<Path> listDirectory(const Path& path);
 
-    virtual void writeFile(
-      const Path& path, const std::string& buffer,
-      WritePolicy writePolicy = WritePolicy::noOverride
-    ) const;
-    virtual std::string readFile(const Path& path) const;
+void writeBinaryFile(const Path& path, BinaryBufferView buffer);
+void writeFile(const Path& path, const std::string& buffer);
 
-    virtual std::vector<std::string> readLines(const Path& path) const;
+void appendBinaryFile(const Path& path, BinaryBufferView buffer);
+void appendFile(const Path& path, const std::string& buffer);
 
-    virtual std::filesystem::file_time_type getLastFileModificationTime(
-      const Path& path
-    ) const;
-};
+BinaryBuffer readBinaryFile(const Path& path);
+std::string readFile(const Path& path);
+std::vector<std::string> readLines(const Path& path);
 
-struct GlobalFileSystem : FileSystem, Singleton<GlobalFileSystem> {};
+std::filesystem::file_time_type getLastFileModificationTime(const Path& path);
 
 }  // namespace kstd

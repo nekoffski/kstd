@@ -7,25 +7,27 @@
 
 namespace kstd {
 
-bool FileSystem::isFile(const Path& path) const {
-    return std::filesystem::is_regular_file(path);
+namespace details {
+
+enum class WritePolicy { override, noOverride };
+
+static void writeBinaryFile(
+  const Path& path, BinaryBufferView buffer, WritePolicy writePolicy
+) {
+    const auto mode =
+      std::ios::binary
+      | (writePolicy == WritePolicy::override ? std::ios::trunc : std::ios::app);
+
+    std::ofstream fileStream;
+    fileStream.open(path, mode);
+    fileStream.write(reinterpret_cast<const char*>(buffer.data()), buffer.size());
+    fileStream.close();
 }
 
-bool FileSystem::isDirectory(const Path& path) const {
-    return std::filesystem::is_directory(path);
-}
-
-std::vector<std::string> FileSystem::listDirectory(const Path& path) const {
-    std::vector<std::string> entries;
-    for (auto& entry : std::filesystem::directory_iterator(path))
-        entries.emplace_back(entry.path());
-    return entries;
-}
-
-void FileSystem::writeFile(
+static void writeFile(
   const Path& path, const std::string& buffer, WritePolicy writePolicy
-) const {
-    auto mode =
+) {
+    const auto mode =
       writePolicy == WritePolicy::override ? std::ios::trunc : std::ios::app;
 
     std::ofstream fileStream;
@@ -33,8 +35,45 @@ void FileSystem::writeFile(
     fileStream << buffer;
     fileStream.close();
 }
+}  // namespace details
 
-std::string FileSystem::readFile(const Path& path) const {
+void writeBinaryFile(const Path& path, BinaryBufferView buffer) {
+    details::writeBinaryFile(path, buffer, details::WritePolicy::override);
+}
+void writeFile(const Path& path, const std::string& buffer) {
+    details::writeFile(path, buffer, details::WritePolicy::override);
+}
+
+void appendBinaryFile(const Path& path, BinaryBufferView buffer) {
+    details::writeBinaryFile(path, buffer, details::WritePolicy::noOverride);
+}
+
+void appendFile(const Path& path, const std::string& buffer) {
+    details::writeFile(path, buffer, details::WritePolicy::noOverride);
+}
+
+bool isFile(const Path& path) { return std::filesystem::is_regular_file(path); }
+bool isDirectory(const Path& path) { return std::filesystem::is_directory(path); }
+
+std::vector<std::string> listDirectory(const Path& path) {
+    std::vector<std::string> entries;
+    for (auto& entry : std::filesystem::directory_iterator(path))
+        entries.emplace_back(entry.path());
+    return entries;
+}
+
+BinaryBuffer readBinaryFile(const Path& path) {
+    std::ifstream file(path, std::ios::binary | std::ios::ate);
+
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    BinaryBuffer buffer(size, 0u);
+    file.read(reinterpret_cast<char*>(buffer.data()), size);
+    return buffer;
+}
+
+std::string readFile(const Path& path) {
     std::ostringstream fileContentStream;
     std::ifstream fs;
 
@@ -45,14 +84,12 @@ std::string FileSystem::readFile(const Path& path) const {
     return fileContentStream.str();
 }
 
-std::vector<std::string> FileSystem::readLines(const Path& path) const {
+std::vector<std::string> readLines(const Path& path) {
     static const std::string endOfLine = "\n";
     return split(readFile(path), endOfLine);
 }
 
-std::filesystem::file_time_type FileSystem::getLastFileModificationTime(
-  const Path& path
-) const {
+std::filesystem::file_time_type getLastFileModificationTime(const Path& path) {
     return std::filesystem::last_write_time(path);
 }
 
