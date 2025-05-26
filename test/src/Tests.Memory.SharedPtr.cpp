@@ -21,6 +21,11 @@ TEST_F(SharedPtrTests, pureVirtualBasePtr) {
     SharedPtr<Foo> ptr = makeShared<Bar>();
 }
 
+TEST_F(SharedPtrTests, nullptr) {
+    SharedPtr<int> f;
+    ASSERT_EQ(f.get(), nullptr);
+}
+
 TEST_F(SharedPtrTests, copyExtendsLifetime) {
     EXPECT_CALL(this->allocator, allocateRaw).Times(1);
     EXPECT_CALL(this->allocator, deallocate).Times(1);

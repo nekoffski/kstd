@@ -128,8 +128,8 @@ public:
     T* operator->() { return m_controlBlock->convert(); }
     const T* operator->() const { return m_controlBlock->convert(); }
 
-    T* get() { return m_controlBlock->convert(); }
-    const T* get() const { return m_controlBlock->convert(); }
+    T* get() { return empty() ? nullptr : m_controlBlock->convert(); }
+    const T* get() const { return empty() ? nullptr : m_controlBlock->convert(); }
 
 private:
     template <typename... Args>
