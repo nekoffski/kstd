@@ -86,6 +86,7 @@ install(
     DESTINATION include/kstd/containers)
 install(
     FILES 
+        ${SRC}/serialization/Core.hh
         ${SRC}/serialization/All.hh
         ${SRC}/serialization/BinaryWriter.hh
         ${SRC}/serialization/BinaryReader.hh
