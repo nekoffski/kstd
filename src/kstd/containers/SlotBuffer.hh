@@ -212,19 +212,26 @@ public:
 
     template <typename Callback>
     requires Callable<Callback, bool, const T&>
-    void eraseIf(Callback&& callback) {
-        for (auto it = m_begin; it != m_end; it++)
-            if (not it->empty() && callback(it->value())) it->clear();
+    u64 eraseIf(Callback&& callback) {
+        u64 removed = 0u;
+        for (auto it = m_begin; it != m_end; it++) {
+            if (not it->empty() && callback(it->value())) {
+                ++removed;
+                it->clear();
+            }
+        }
+        return removed;
     }
 
-    void erase(T& v) {
+    bool erase(T& v) {
         for (u64 i = 0; i < m_capacity; ++i) {
             if (auto& slot = *(m_begin + i); slot.get() == &v) {
                 slot.clear();
                 m_freeSlots.push(i);
-                return;
+                return true;
             }
         }
+        return false;
     }
 
 protected:

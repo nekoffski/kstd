@@ -39,6 +39,12 @@ public:
     Coro<void> sleep(std::chrono::nanoseconds duration);
     void cancel();
 
+    template <typename Callback>
+    void callLater(Callback&& callback, std::chrono::nanoseconds duration) {
+        m_timer.expires_after(duration);
+        m_timer.async_wait(std::forward<Callback>(callback));
+    }
+
 private:
     boost::asio::steady_timer m_timer;
 };

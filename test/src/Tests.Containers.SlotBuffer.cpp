@@ -54,7 +54,7 @@ TYPED_TEST(SlotBufferTests, insertEraseSimple) {
     ASSERT_EQ(sb.freeSlots(), defaultCapacity - 1);
     ASSERT_EQ(sb.size(), 1);
 
-    sb.erase(*it);
+    ASSERT_TRUE(sb.erase(*it));
     ASSERT_EQ(sb.freeSlots(), defaultCapacity);
     ASSERT_EQ(sb.size(), 0);
 }
@@ -128,7 +128,7 @@ TYPED_TEST(SlotBufferTests, iteratorsForLoop) {
     ASSERT_EQ(sum, 100 + 101 + 102);
 
     sum = 0;
-    sb.erase(*handle);
+    ASSERT_TRUE(sb.erase(*handle));
     for (const auto& v : sb) sum += v.x;
     ASSERT_EQ(sum, 100 + 102);
 }

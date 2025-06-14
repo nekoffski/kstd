@@ -1,3 +1,4 @@
+conan_provider.cmake
 CMakeUserPresets.json
 *_legacy*
 .idea

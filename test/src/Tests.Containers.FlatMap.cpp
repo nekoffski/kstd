@@ -67,7 +67,15 @@ TYPED_TEST(FlatMapTests, erase) {
     this->fm.insert("a", 1);
     ASSERT_NO_NULLPTR(this->fm.get("a"));
 
-    this->fm.erase("a");
+    ASSERT_TRUE(this->fm.erase("a"));
+    ASSERT_NULLPTR(this->fm.get("a"));
+
+    this->fm.insert("a", 1);
+    ASSERT_NO_NULLPTR(this->fm.get("a"));
+
+    ASSERT_TRUE(this->fm.eraseIf([]([[maybe_unused]] const auto& k, const auto& v) {
+        return v == 1;
+    }));
     ASSERT_NULLPTR(this->fm.get("a"));
 }
 

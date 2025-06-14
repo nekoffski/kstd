@@ -82,8 +82,14 @@ public:
         return *insert(k, std::move(v));
     }
 
-    void erase(const K& k) {
-        m_buffer.eraseIf([&](auto& r) { return r.key == k; });
+    bool erase(const K& k) {
+        return m_buffer.eraseIf([&](auto& r) { return r.key == k; }) != 0u;
+    }
+
+    template <typename Callback>
+    requires Callable<Callback, bool, const K&, const V&>
+    bool eraseIf(Callback&& c) {
+        return m_buffer.eraseIf([&](auto& r) { return c(r.key, r.value); }) != 0u;
     }
 
     void clear() { m_buffer.clear(); }
@@ -151,8 +157,8 @@ template <typename T> struct VectorAdapter {
 
         template <typename Callback>
         requires Callable<Callback, bool, T&>
-        void eraseIf(Callback&& c) {
-            std::erase_if(*this, std::forward<Callback>(c));
+        u64 eraseIf(Callback&& c) {
+            return std::erase_if(*this, std::forward<Callback>(c));
         }
     };
 };
