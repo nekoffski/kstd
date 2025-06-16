@@ -86,6 +86,11 @@ install(
     DESTINATION include/kstd/containers)
 install(
     FILES 
+        ${SRC}/thread/ThreadPool.hh
+        ${SRC}/thread/Promise.hh
+    DESTINATION include/kstd/thread)
+install(
+    FILES 
         ${SRC}/serialization/Core.hh
         ${SRC}/serialization/All.hh
         ${SRC}/serialization/BinaryWriter.hh

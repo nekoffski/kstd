@@ -20,4 +20,8 @@ private:
     spdlog::source_loc m_source;
 };
 
+struct CancelledError : Error {
+    using Error::Error;
+};
+
 }  // namespace kstd
