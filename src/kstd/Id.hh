@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_map>
 #include <mutex>
 #include <limits>
 #include <concepts>
@@ -13,6 +14,7 @@
 #include "String.hh"
 #include "Log.hh"
 #include "Concepts.hh"
+#include "Error.hh"
 
 namespace kstd {
 
@@ -68,12 +70,17 @@ public:
 
     Id getId() const { return m_id; }
 
-private:
+protected:
     void free() {
         if (m_shouldFree) {
             std::scoped_lock guard{ s_mutex };
             s_freeIds.push(m_id);
         }
+    }
+
+    void regenerateId() {
+        std::scoped_lock guard{ s_mutex };
+        s_freeIds.push(std::exchange(m_id, s_generator++));
     }
 
     static Id createId() {
@@ -96,32 +103,35 @@ private:
     inline static std::mutex s_mutex;
 };
 
-template <typename T, StringLiteral NameGenerator, bool Const = true>
-class NamedResource : public WithId<T> {
+template <
+  typename T, StringLiteral NameGenerator, bool Const = true, bool Unique = true>
+class WithName : public WithId<T> {
     inline const static std::string baseName = NameGenerator.value;
 
 public:
-    explicit NamedResource(std::optional<std::string> name = {}) :
+    explicit WithName(std::optional<std::string> name = {}) :
         m_name(generateName(name)) {
         log::debug(
           "Creating {} - id={} name='{}'", baseName, WithId<T>::getId(), m_name
         );
     }
 
-    ~NamedResource() {
+    ~WithName() {
         log::debug(
           "Destroying {} - id={} name='{}'", baseName, WithId<T>::getId(), m_name
         );
     }
 
-    NamedResource(NamedResource&& oth)            = default;
-    NamedResource& operator=(NamedResource&& oth) = default;
+    WithName(WithName&& oth)            = default;
+    WithName& operator=(WithName&& oth) = default;
 
     const std::string& getName() const { return m_name; }
 
     void setName(const std::string& name)
     requires(!Const)
     {
+        s_namesTaken.erase(m_name);
+        s_namesTaken.insert({ name, 1u });
         m_name = name;
     }
 
@@ -129,8 +139,32 @@ private:
     std::string m_name;
 
     std::string generateName(std::optional<std::string> name) {
-        return name.value_or(fmt::format("{}_{}", baseName, WithId<T>::getId()));
+        if constexpr (Unique) {
+            std::string out;
+
+            if (name) {
+                if (s_namesTaken.contains(*name)) {
+                    throw AlreadyExistsError{
+                        "Object named '{}' already exists", *name
+                    };
+                }
+                out = *name;
+            } else {
+                while (true) {
+                    out = fmt::format("{}_{}", baseName, WithId<T>::getId());
+                    if (not s_namesTaken.contains(out)) break;
+                    WithId<T>::regenerateId();
+                }
+            }
+            s_namesTaken.insert({ out, 1u });
+            return out;
+        } else {
+            return name.value_or(fmt::format("{}_{}", baseName, WithId<T>::getId()));
+        }
     }
+
+private:
+    inline static std::unordered_map<std::string, u8> s_namesTaken;
 };
 
 template <typename T>

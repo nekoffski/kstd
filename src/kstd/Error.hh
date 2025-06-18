@@ -24,4 +24,8 @@ struct CancelledError : Error {
     using Error::Error;
 };
 
+struct AlreadyExistsError : Error {
+    using Error::Error;
+};
+
 }  // namespace kstd
