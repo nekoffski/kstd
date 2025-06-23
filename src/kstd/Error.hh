@@ -28,4 +28,8 @@ struct AlreadyExistsError : Error {
     using Error::Error;
 };
 
+struct InvalidArgumentError : Error {
+    using Error::Error;
+};
+
 }  // namespace kstd

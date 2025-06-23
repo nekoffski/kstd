@@ -5,10 +5,11 @@
 
 namespace kstd {
 
-FreeBlockList::FreeBlockList(u64 size) : m_spaceLeft(size), m_size(size) {
+FreeBlockList::FreeBlockList(u64 size, u64 minBlockSize) :
+    m_spaceLeft(size), m_size(size), m_minBlockSize(minBlockSize) {
     log::expect(
-      size % minBlockSize == 0, "Size must be a multiple of minBlockSize={}",
-      minBlockSize
+      size % m_minBlockSize == 0, "Size must be a multiple of minBlockSize={}",
+      m_minBlockSize
     );
     m_blocks.pushBack(Block{ .offset = 0u, .size = size });
 }
@@ -37,7 +38,7 @@ void FreeBlockList::releaseBlock(const Block& b) {
 
 std::optional<FreeBlockList::Block> FreeBlockList::acquireBlock(u64 size) {
     log::expect(
-      size > 0 && size % minBlockSize == 0, "Invalid block size: {}", size
+      size > 0 && size % m_minBlockSize == 0, "Invalid block size: {}", size
     );
 
     if (size > m_spaceLeft) return {};

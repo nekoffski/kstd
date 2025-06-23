@@ -1,6 +1,5 @@
 #pragma once
 
-#include <unordered_map>
 #include <mutex>
 #include <limits>
 #include <concepts>
@@ -70,17 +69,12 @@ public:
 
     Id getId() const { return m_id; }
 
-protected:
+private:
     void free() {
         if (m_shouldFree) {
             std::scoped_lock guard{ s_mutex };
             s_freeIds.push(m_id);
         }
-    }
-
-    void regenerateId() {
-        std::scoped_lock guard{ s_mutex };
-        s_freeIds.push(std::exchange(m_id, s_generator++));
     }
 
     static Id createId() {
@@ -103,8 +97,7 @@ protected:
     inline static std::mutex s_mutex;
 };
 
-template <
-  typename T, StringLiteral NameGenerator, bool Const = true, bool Unique = true>
+template <typename T, StringLiteral NameGenerator, bool Const = true>
 class WithName : public WithId<T> {
     inline const static std::string baseName = NameGenerator.value;
 
@@ -130,8 +123,11 @@ public:
     void setName(const std::string& name)
     requires(!Const)
     {
-        s_namesTaken.erase(m_name);
-        s_namesTaken.insert({ name, 1u });
+        if (name.starts_with(baseName)) {
+            throw InvalidArgumentError{
+                "Name cannot start with '{}' to avoid conflicts", baseName
+            };
+        }
         m_name = name;
     }
 
@@ -139,32 +135,8 @@ private:
     std::string m_name;
 
     std::string generateName(std::optional<std::string> name) {
-        if constexpr (Unique) {
-            std::string out;
-
-            if (name) {
-                if (s_namesTaken.contains(*name)) {
-                    throw AlreadyExistsError{
-                        "Object named '{}' already exists", *name
-                    };
-                }
-                out = *name;
-            } else {
-                while (true) {
-                    out = fmt::format("{}_{}", baseName, WithId<T>::getId());
-                    if (not s_namesTaken.contains(out)) break;
-                    WithId<T>::regenerateId();
-                }
-            }
-            s_namesTaken.insert({ out, 1u });
-            return out;
-        } else {
-            return name.value_or(fmt::format("{}_{}", baseName, WithId<T>::getId()));
-        }
+        return name.value_or(fmt::format("{}_{}", baseName, WithId<T>::getId()));
     }
-
-private:
-    inline static std::unordered_map<std::string, u8> s_namesTaken;
 };
 
 template <typename T>

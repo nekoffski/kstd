@@ -15,10 +15,8 @@ TEST(WithNameTests, nameConflict) {
     Mutable m{};
     ASSERT_EQ(m.getName(), "Mutable_0");
     ASSERT_EQ(m.getId(), 0);
-    m.setName("Mutable_1");
-    Mutable m2{};
-    ASSERT_EQ(m2.getName(), "Mutable_2");
-    ASSERT_EQ(m2.getId(), 2);
+    m.setName("TestName");
+    ASSERT_EQ(m.getName(), "TestName");
 }
 
 TEST(WithNameTests, mutableOverload) {

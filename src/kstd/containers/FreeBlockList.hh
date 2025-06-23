@@ -11,14 +11,14 @@ namespace kstd {
 
 class FreeBlockList {
 public:
-    static constexpr u64 minBlockSize = 8u;
+    static constexpr u64 defaultMinBlockSize = 4u;
 
     struct Block {
         u64 offset;
         u64 size;
     };
 
-    explicit FreeBlockList(u64 size);
+    explicit FreeBlockList(u64 size, u64 minBlockSize = defaultMinBlockSize);
 
     void releaseBlock(const Block& b);
     std::optional<Block> acquireBlock(u64 size);
@@ -31,6 +31,7 @@ private:
 
     u64 m_spaceLeft;
     u64 m_size;
+    u64 m_minBlockSize;
     DoublyLinkedList<Block> m_blocks;
 };
 
