@@ -14,22 +14,23 @@ public:
         ),
         m_source(format.loc) {}
 
+    explicit Error() : Error("No details provided") {}
+
     std::string where() const;
 
 private:
     spdlog::source_loc m_source;
 };
 
-struct CancelledError : Error {
-    using Error::Error;
-};
+#define KSTD_DECLARE_ERROR(ErrorName) \
+    struct ErrorName : Error {        \
+        using Error::Error;           \
+    };
 
-struct AlreadyExistsError : Error {
-    using Error::Error;
-};
-
-struct InvalidArgumentError : Error {
-    using Error::Error;
-};
+KSTD_DECLARE_ERROR(CancelledError);
+KSTD_DECLARE_ERROR(AlreadyExistsError);
+KSTD_DECLARE_ERROR(InvalidArgumentError);
+KSTD_DECLARE_ERROR(OutOfSpaceError);
+KSTD_DECLARE_ERROR(OutOfRangeError);
 
 }  // namespace kstd

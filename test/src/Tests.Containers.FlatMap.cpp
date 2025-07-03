@@ -28,6 +28,17 @@ TYPED_TEST(FlatMapTests, empty) {
     ASSERT_TRUE(this->fm.empty());
 }
 
+TEST(FlatMapFooTests, insertEmplaceComplexType) {
+    struct Restricted : NonCopyable, NonMovable {
+        Restricted(int x, int y) : x(x), y(y) {}
+        int x;
+        int y;
+    };
+
+    StaticFlatMap<int, Restricted, 16> dfm;
+    dfm.emplace(1, 1, 2);
+}
+
 TYPED_TEST(FlatMapTests, insertEmplaceClear) {
     this->fm.insert("a", 1);
     this->fm.insert("b", 2);
@@ -59,8 +70,8 @@ TYPED_TEST(FlatMapTests, put) {
 }
 
 TYPED_TEST(FlatMapTests, insertTwice) {
-    ASSERT_NE(this->fm.insert("a", 1), nullptr);
-    ASSERT_EQ(this->fm.insert("a", 1), nullptr);
+    this->fm.insert("a", 1);
+    ASSERT_THROW(this->fm.insert("a", 1), AlreadyExistsError);
 }
 
 TYPED_TEST(FlatMapTests, erase) {

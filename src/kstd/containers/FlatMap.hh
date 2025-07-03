@@ -12,6 +12,13 @@ namespace details {
 
 template <typename K, typename V, template <typename> class Buffer> class FlatMap {
     struct Record {
+        template <typename... Args>
+        requires std::constructible_from<V, Args...>
+        explicit Record(const K& k, Args&&... v) :
+            key(k), value(std::forward<Args>(v)...) {}
+
+        explicit Record(const K& k, V&& v) : key(k), value(std::move(v)) {}
+
         K key;
         V value;
     };
@@ -52,21 +59,21 @@ public:
         return it == m_buffer.end() ? nullptr : &it->value;
     }
 
-    V* insert(const K& k, const V& v) {
-        if (get(k) != nullptr) return nullptr;
+    V& insert(const K& k, const V& v) {
+        if (get(k) != nullptr) throw AlreadyExistsError{};
         auto copy = v;
         return insert(k, std::move(copy));
     }
 
-    V* insert(const K& k, V&& v) {
-        if (get(k) != nullptr) return nullptr;
-        return &m_buffer.insert({ k, std::move(v) })->value;
+    V& insert(const K& k, V&& v) {
+        if (get(k) != nullptr) throw AlreadyExistsError{};
+        return m_buffer.emplace(k, std::move(v)).value;
     }
 
     template <typename... Args>
     requires std::constructible_from<V, Args...>
-    V* emplace(const K& k, Args&&... args) {
-        return insert(k, V{ std::forward<Args>(args)... });
+    V& emplace(const K& k, Args&&... args) {
+        return m_buffer.emplace(k, std::forward<Args>(args)...).value;
     }
 
     V& put(const K& k, const V& v) {
@@ -79,7 +86,7 @@ public:
             *record = std::move(v);
             return *record;
         }
-        return *insert(k, std::move(v));
+        return insert(k, std::move(v));
     }
 
     bool erase(const K& k) {
@@ -150,9 +157,16 @@ private:
 
 template <typename T> struct VectorAdapter {
     struct Type : public std::vector<T> {
-        T* insert(T&& v) {
+        T& insert(T&& v) {
             this->push_back(std::move(v));
-            return &this->back();
+            return this->back();
+        }
+
+        template <typename... Args>
+        requires std::constructible_from<T, Args...>
+        T& emplace(Args&&... args) {
+            this->emplace_back(std::forward<Args>(args)...);
+            return this->back();
         }
 
         template <typename Callback>

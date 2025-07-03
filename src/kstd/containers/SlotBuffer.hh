@@ -5,6 +5,7 @@
 
 #include "kstd/Core.hh"
 #include "kstd/Concepts.hh"
+#include "kstd/Error.hh"
 #include "kstd/memory/LocalPtr.hh"
 
 namespace kstd {
@@ -148,21 +149,24 @@ public:
     ConstIterator cbegin() const { return ConstIterator{ m_begin, m_end }; }
     ConstIterator cend() const { return ConstIterator{ m_end, m_end }; }
 
-    T* insert(T&& v) {
-        if (full()) return nullptr;
-        return getSlot().emplace(std::move(v));
+    T& insert(T&& v) {
+        if (full()) [[unlikely]]
+            throw OutOfSpaceError{};
+        return *getSlot().emplace(std::move(v));
     }
 
-    T* insert(const T& v) {
-        if (full()) return nullptr;
-        return getSlot().emplace(v);
+    T& insert(const T& v) {
+        if (full()) [[unlikely]]
+            throw OutOfSpaceError{};
+        return *getSlot().emplace(v);
     }
 
     template <typename... Args>
     requires std::constructible_from<T, Args...>
-    T* emplace(Args&&... args) {
-        if (full()) return nullptr;
-        return getSlot().emplace(std::forward<Args>(args)...);
+    T& emplace(Args&&... args) {
+        if (full()) [[unlikely]]
+            throw OutOfSpaceError{};
+        return *getSlot().emplace(std::forward<Args>(args)...);
     }
 
     void clear() {
@@ -214,24 +218,27 @@ public:
     requires Callable<Callback, bool, const T&>
     u64 eraseIf(Callback&& callback) {
         u64 removed = 0u;
-        for (auto it = m_begin; it != m_end; it++) {
-            if (not it->empty() && callback(it->value())) {
+        for (u64 i = 0; i < m_capacity; ++i) {
+            if (auto& slot = *(m_begin + i); slot && callback(slot.value())) {
+                slot.clear();
+                m_freeSlots.push(i);
                 ++removed;
-                it->clear();
             }
         }
         return removed;
     }
 
-    bool erase(T& v) {
+    bool erase(const T& v) {
+        bool found = false;
+
         for (u64 i = 0; i < m_capacity; ++i) {
-            if (auto& slot = *(m_begin + i); slot.get() == &v) {
+            if (auto& slot = *(m_begin + i); slot && slot.value() == v) {
                 slot.clear();
                 m_freeSlots.push(i);
-                return true;
+                found = true;
             }
         }
-        return false;
+        return found;
     }
 
 protected:

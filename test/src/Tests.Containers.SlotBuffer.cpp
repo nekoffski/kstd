@@ -49,12 +49,12 @@ TYPED_TEST(SlotBufferTests, empty) {
 TYPED_TEST(SlotBufferTests, insertEraseSimple) {
     auto& sb = *this->sb;
 
-    auto it = sb.insert(Foo{ 15, 1, 1 });
-    ASSERT_EQ(it->x, 15);
+    auto& it = sb.insert(Foo{ 15, 1, 1 });
+    ASSERT_EQ(it.x, 15);
     ASSERT_EQ(sb.freeSlots(), defaultCapacity - 1);
     ASSERT_EQ(sb.size(), 1);
 
-    ASSERT_TRUE(sb.erase(*it));
+    ASSERT_TRUE(sb.eraseIf([&](auto& r) { return &r == &it; }));
     ASSERT_EQ(sb.freeSlots(), defaultCapacity);
     ASSERT_EQ(sb.size(), 0);
 }
@@ -120,7 +120,7 @@ TYPED_TEST(SlotBufferTests, iteratorsForLoop) {
     auto& sb = *this->sb;
 
     sb.insert(Foo{ 100, 1, 1 });
-    auto handle = sb.insert(Foo{ 101, 1, 1 });
+    auto& handle = sb.insert(Foo{ 101, 1, 1 });
     sb.insert(Foo{ 102, 1, 1 });
 
     int sum = 0;
@@ -128,7 +128,7 @@ TYPED_TEST(SlotBufferTests, iteratorsForLoop) {
     ASSERT_EQ(sum, 100 + 101 + 102);
 
     sum = 0;
-    ASSERT_TRUE(sb.erase(*handle));
+    ASSERT_TRUE(sb.eraseIf([&](auto& r) { return &r == &handle; }));
     for (const auto& v : sb) sum += v.x;
     ASSERT_EQ(sum, 100 + 102);
 }
