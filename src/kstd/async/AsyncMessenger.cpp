@@ -7,7 +7,7 @@ namespace kstd {
 AsyncMessenger::AsyncMessenger(boost::asio::io_context& ctx) : m_ctx(ctx) {}
 
 Coro<void> AsyncMessenger::sendImpl(
-  const std::string& destination, UniquePtr<AsyncMessage> message
+  const std::string& destination, std::unique_ptr<AsyncMessage> message
 ) {
     auto queue = m_queues.find(destination);
     log::expect(
@@ -22,12 +22,12 @@ Coro<void> AsyncMessenger::sendImpl(
 }
 
 AsyncMessenger::Queue* AsyncMessenger::registerQueue(const std::string& name) {
-    auto [it, inserted] = m_queues.emplace(name, makeUnique<Queue>(*this));
+    auto [it, inserted] = m_queues.emplace(name, std::make_unique<Queue>(*this));
     log::expect(inserted, "Queue {} already registered", name);
     return it->second.get();
 }
 
-Coro<UniquePtr<AsyncMessage>> AsyncMessenger::Queue::wait() {
+Coro<std::unique_ptr<AsyncMessage>> AsyncMessenger::Queue::wait() {
     co_return (co_await m_channel.async_receive(boost::asio::use_awaitable));
 }
 

@@ -1,22 +1,22 @@
 #include "kstd/containers/SlotBuffer.hh"
 
-#include "Core.hh"
+#include <memory>
 
-#include "kstd/memory/UniquePtr.hh"
+#include "Core.hh"
 
 using namespace kstd;
 
 constexpr u32 defaultCapacity = 16u;
 
 template <typename SlotBuffer> struct SlotBufferTests : testing::Test {
-    kstd::UniquePtr<SlotBuffer> sb;
+    std::unique_ptr<SlotBuffer> sb;
 
     void SetUp() {
         if constexpr (std::is_same_v<
                         SlotBuffer, StackSlotBuffer<Foo, defaultCapacity>>) {
-            sb = kstd::makeUnique<StackSlotBuffer<Foo, defaultCapacity>>();
+            sb = std::make_unique<StackSlotBuffer<Foo, defaultCapacity>>();
         } else if constexpr (std::is_same_v<SlotBuffer, HeapSlotBuffer<Foo>>) {
-            sb = kstd::makeUnique<HeapSlotBuffer<Foo>>(defaultCapacity);
+            sb = std::make_unique<HeapSlotBuffer<Foo>>(defaultCapacity);
         }
     }
 };

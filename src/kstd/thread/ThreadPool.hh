@@ -5,8 +5,7 @@
 #include <atomic>
 #include <queue>
 #include <optional>
-
-#include "kstd/memory/SharedPtr.hh"
+#include <memory>
 
 #include "kstd/Core.hh"
 #include "Promise.hh"
@@ -47,7 +46,7 @@ public:
     Future<std::result_of_t<Callback()>> call(Callback&& callback) {
         using R = std::result_of_t<Callback()>;
 
-        auto promise = makeShared<Promise<R>>();
+        auto promise = std::make_shared<Promise<R>>();
         Future<R> future{ promise };
 
         Task task =

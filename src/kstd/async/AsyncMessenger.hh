@@ -1,9 +1,10 @@
 #pragma once
 
 #include <unordered_map>
+#include <memory>
 
-#include <kstd/memory/UniquePtr.hh>
-
+#include "kstd/Core.hh"
+#include "kstd/Concepts.hh"
 #include "Core.hh"
 #include "AsyncMessage.hh"
 
@@ -13,7 +14,7 @@ class AsyncMessenger {
     static constexpr u64 channelSize = 32u;
 
     using Channel = boost::asio::experimental::channel<
-      void(boost::system::error_code, UniquePtr<AsyncMessage>)>;
+      void(boost::system::error_code, std::unique_ptr<AsyncMessage>)>;
 
 public:
     class Queue {
@@ -22,10 +23,11 @@ public:
         class SendProxy : public NonMovable, public NonCopyable {
         public:
             explicit SendProxy(
-              UniquePtr<AsyncMessage> message, AsyncMessenger& messenger
+              std::unique_ptr<AsyncMessage> message, AsyncMessenger& messenger
             ) : m_message(std::move(message)), m_messenger(messenger) {}
 
-            Coro<SharedPtr<AsyncMessage::Promise>> to(const std::string& destination
+            Coro<std::shared_ptr<AsyncMessage::Promise>> to(
+              const std::string& destination
             ) && {
                 auto promise = m_message->getPromise();
                 co_await m_messenger.sendImpl(destination, std::move(m_message));
@@ -33,7 +35,7 @@ public:
             }
 
         private:
-            UniquePtr<AsyncMessage> m_message;
+            std::unique_ptr<AsyncMessage> m_message;
             AsyncMessenger& m_messenger;
         };
 
@@ -44,7 +46,7 @@ public:
         requires std::constructible_from<T, Args...>
         SendProxy send(Args&&... args) {
             return SendProxy{
-                makeUnique<details::TypedAsyncMessage<T>>(
+                std::make_unique<details::TypedAsyncMessage<T>>(
                   m_messenger.getExecutor(), std::forward<Args>(args)...
                 ),
                 m_messenger
@@ -53,7 +55,7 @@ public:
 
         void cancel();
 
-        Coro<UniquePtr<AsyncMessage>> wait();
+        Coro<std::unique_ptr<AsyncMessage>> wait();
 
     private:
         Channel& getChannel();
@@ -70,11 +72,11 @@ public:
 
 private:
     Coro<void> sendImpl(
-      const std::string& destination, UniquePtr<AsyncMessage> message
+      const std::string& destination, std::unique_ptr<AsyncMessage> message
     );
 
     boost::asio::io_context& m_ctx;
-    std::unordered_map<std::string, kstd::UniquePtr<Queue>> m_queues;
+    std::unordered_map<std::string, std::unique_ptr<Queue>> m_queues;
 };
 
 }  // namespace kstd

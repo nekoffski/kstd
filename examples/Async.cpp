@@ -5,7 +5,6 @@
 #include "kstd/async/Core.hh"
 #include "kstd/async/Utils.hh"
 #include "kstd/async/AsyncMessenger.hh"
-#include "kstd/memory/UniquePtr.hh"
 
 using namespace std::chrono_literals;
 

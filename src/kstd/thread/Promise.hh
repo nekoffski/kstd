@@ -5,10 +5,10 @@
 #include <chrono>
 #include <vector>
 #include <numeric>
+#include <memory>
 
 #include "kstd/Error.hh"
 #include "kstd/Concepts.hh"
-#include "kstd/memory/SharedPtr.hh"
 #include "kstd/Algorithms.hh"
 
 namespace kstd {
@@ -114,7 +114,7 @@ private:
 
 template <typename T> class Future {
 public:
-    explicit Future(SharedPtr<Promise<T>> p) : m_promise(std::move(p)) {}
+    explicit Future(std::shared_ptr<Promise<T>> p) : m_promise(std::move(p)) {}
 
     T wait() { return m_promise->wait(); }
 
@@ -129,12 +129,12 @@ public:
     }
 
 private:
-    SharedPtr<Promise<T>> m_promise;
+    std::shared_ptr<Promise<T>> m_promise;
 };
 
 template <> class Future<void> {
 public:
-    explicit Future(SharedPtr<Promise<void>> p) : m_promise(std::move(p)) {}
+    explicit Future(std::shared_ptr<Promise<void>> p) : m_promise(std::move(p)) {}
 
     void wait() { m_promise->wait(); }
 
@@ -149,7 +149,7 @@ public:
     }
 
 private:
-    SharedPtr<Promise<void>> m_promise;
+    std::shared_ptr<Promise<void>> m_promise;
 };
 
 namespace details {

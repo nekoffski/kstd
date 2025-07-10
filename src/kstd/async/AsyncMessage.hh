@@ -2,11 +2,10 @@
 
 #include <typeindex>
 #include <concepts>
+#include <memory>
 
 #include <boost/asio/experimental/channel.hpp>
 
-#include "kstd/memory/UniquePtr.hh"
-#include "kstd/memory/SharedPtr.hh"
 #include "AsyncPromise.hh"
 
 namespace kstd {
@@ -48,21 +47,22 @@ private:
 
 class AsyncMessage : public AsyncResponse {
 public:
-    using Promise = AsyncPromise<UniquePtr<AsyncResponse>>;
+    using Promise = AsyncPromise<std::unique_ptr<AsyncResponse>>;
 
     AsyncMessage(const boost::asio::any_io_executor& ex
-    ) : m_promise(makeShared<Promise>(ex)) {}
+    ) : m_promise(std::make_shared<Promise>(ex)) {}
 
-    SharedPtr<Promise> getPromise() { return m_promise; }
+    std::shared_ptr<Promise> getPromise() { return m_promise; }
 
     template <typename T, typename... Args> Coro<void> respond(Args&&... args) {
         co_return (co_await m_promise->set(
-          makeUnique<details::TypedAsyncResponse<T>>(std::forward<Args>(args)...)
+          std::make_unique<details::TypedAsyncResponse<T>>(std::forward<Args>(args
+          )...)
         ));
     }
 
 private:
-    SharedPtr<Promise> m_promise;
+    std::shared_ptr<Promise> m_promise;
 };
 
 namespace details {

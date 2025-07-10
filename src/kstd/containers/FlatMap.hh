@@ -12,12 +12,12 @@ namespace details {
 
 template <typename K, typename V, template <typename> class Buffer> class FlatMap {
     struct Record {
+        explicit Record(const K& k, V&& v) : key(k), value(std::move(v)) {}
+
         template <typename... Args>
         requires std::constructible_from<V, Args...>
         explicit Record(const K& k, Args&&... v) :
             key(k), value(std::forward<Args>(v)...) {}
-
-        explicit Record(const K& k, V&& v) : key(k), value(std::move(v)) {}
 
         K key;
         V value;
@@ -67,7 +67,7 @@ public:
 
     V& insert(const K& k, V&& v) {
         if (get(k) != nullptr) throw AlreadyExistsError{};
-        return m_buffer.emplace(k, std::move(v)).value;
+        return m_buffer.insert(Record{ k, std::move(v) }).value;
     }
 
     template <typename... Args>
