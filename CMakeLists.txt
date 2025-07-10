@@ -102,8 +102,6 @@ install(
         ${SRC}/memory/Allocator.hh
         ${SRC}/memory/Mallocator.hh
         ${SRC}/memory/PoolAllocator.hh
-        ${SRC}/memory/UniquePtr.hh
-        ${SRC}/memory/SharedPtr.hh
         ${SRC}/memory/LocalPtr.hh
     DESTINATION include/kstd/memory)
 install(
