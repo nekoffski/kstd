@@ -8,30 +8,13 @@
 #include <memory>
 
 #include "kstd/Core.hh"
+#include "kstd/containers/ThreadSafeQueue.hh"
 #include "Promise.hh"
 
 namespace kstd {
 
 class ThreadPool {
     using Task = std::function<void()>;
-
-    class Queue {
-    public:
-        Task pop();
-        std::optional<Task> tryPop();
-
-        bool tryPush(Task& task);
-        void push(Task& task);
-
-        void stop();
-
-    private:
-        Task getFront();
-
-        std::queue<Task> m_q;
-        std::mutex m_mutex;
-        std::condition_variable m_cv;
-    };
 
     static constexpr u16 defaultWorkStealingFactor = 2u;
 
@@ -63,10 +46,10 @@ public:
 
         for (u16 i = 0; i < m_workerCount * m_workStealingFactor; ++i) {
             const auto index = (workerId + i) % m_workerCount;
-            if (m_queues[index].tryPush(task)) return future;
+            if (m_queues[index].tryPush(std::move(task))) return future;
         }
 
-        m_queues[workerId].push(task);
+        m_queues[workerId].push(std::move(task));
         return future;
     }
 
@@ -84,7 +67,7 @@ private:
     std::atomic_uint16_t m_nextWorkerId;
 
     std::vector<std::jthread> m_workers;
-    std::vector<Queue> m_queues;
+    std::vector<ThreadSafeQueue<Task>> m_queues;
 };
 
 }  // namespace kstd

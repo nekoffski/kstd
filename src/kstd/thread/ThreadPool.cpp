@@ -42,45 +42,4 @@ ThreadPool::Task ThreadPool::findTask(u16 workerIndex) {
     return m_queues[workerIndex].pop();
 }
 
-void ThreadPool::Queue::stop() { m_cv.notify_all(); }
-
-bool ThreadPool::Queue::tryPush(ThreadPool::Task& task) {
-    if (auto lk = std::unique_lock{ m_mutex, std::try_to_lock }; lk) {
-        m_q.push(std::move(task));
-        m_cv.notify_one();
-        return true;
-    }
-    return false;
-}
-
-void ThreadPool::Queue::push(ThreadPool::Task& task) {
-    std::unique_lock lk{ m_mutex };
-    m_q.push(std::move(task));
-    m_cv.notify_one();
-}
-
-std::optional<ThreadPool::Task> ThreadPool::Queue::tryPop() {
-    if (auto lk = std::unique_lock{ m_mutex, std::try_to_lock };
-        lk && not m_q.empty()) {
-        return getFront();
-    }
-    return {};
-}
-
-ThreadPool::Task ThreadPool::Queue::pop() {
-    std::unique_lock lk{ m_mutex };
-
-    while (m_q.empty()) {
-        m_cv.wait(lk);
-        if (m_q.empty()) throw CancelledError{ "Thread pool has been stopped" };
-    }
-    return getFront();
-}
-
-ThreadPool::Task ThreadPool::Queue::getFront() {
-    auto t = std::move(m_q.front());
-    m_q.pop();
-    return t;
-}
-
 }  // namespace kstd

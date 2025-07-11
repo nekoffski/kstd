@@ -86,7 +86,7 @@ template <typename T = Foo> struct LifetimeProbe {
     }
 
     template <typename... Args>
-    LifetimeProbe(Args&&... args) : value(std::forward<Args>(args)...) {
+    explicit LifetimeProbe(Args&&... args) : value(std::forward<Args>(args)...) {
         ++ctorCalls;
     }
 

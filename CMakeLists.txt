@@ -79,8 +79,10 @@ install(
     DESTINATION include/kstd)
 install(
     FILES 
+        ${SRC}/containers/Storage.hh
         ${SRC}/containers/DoublyLinkedList.hh
         ${SRC}/containers/FlatMap.hh
+        ${SRC}/containers/RingBuffer.hh
         ${SRC}/containers/FreeBlockList.hh
         ${SRC}/containers/SlotBuffer.hh
     DESTINATION include/kstd/containers)

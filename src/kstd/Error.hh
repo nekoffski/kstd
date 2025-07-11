@@ -30,7 +30,8 @@ private:
 KSTD_DECLARE_ERROR(CancelledError);
 KSTD_DECLARE_ERROR(AlreadyExistsError);
 KSTD_DECLARE_ERROR(InvalidArgumentError);
-KSTD_DECLARE_ERROR(OutOfSpaceError);
+KSTD_DECLARE_ERROR(CollectionEmptyError);
+KSTD_DECLARE_ERROR(CollectionFullError);
 KSTD_DECLARE_ERROR(OutOfRangeError);
 
 }  // namespace kstd
