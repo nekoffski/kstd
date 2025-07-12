@@ -24,8 +24,11 @@ public:
     ~DoublyLinkedList() { clear(); }
 
     void clear() {
-        for (auto n = m_head; n != nullptr; n = n->next) destroyNode(n);
-        m_head = nullptr;
+        while (m_head != nullptr) {
+            auto prev = m_head;
+            m_head    = prev->next;
+            destroyNode(prev);
+        }
     }
 
     Node* erase(Node* node) {
