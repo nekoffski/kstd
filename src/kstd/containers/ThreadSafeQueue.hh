@@ -10,6 +10,7 @@
 #include "kstd/Error.hh"
 
 namespace kstd {
+
 namespace details {
 
 template <typename T, u64 Capacity> class ThreadSafeQueueBase {
@@ -18,8 +19,9 @@ public:
 
     bool tryPush(T&& value) {
         if (auto lk = std::unique_lock{ m_mutex, std::try_to_lock }; lk) {
-            if constexpr (Capacity > 0)
+            if constexpr (Capacity > 0u)
                 if (m_q.size() >= Capacity) return false;
+
             m_q.push(std::move(value));
             m_cv.notify_one();
             return true;
@@ -27,15 +29,12 @@ public:
         return false;
     }
 
-    u64 size() const {
-        std::unique_lock lk{ m_mutex };
-        return m_q.size();
-    }
+    u64 size() const { return m_q.size(); }
 
     void push(T&& value) {
         std::unique_lock lk{ m_mutex };
 
-        if constexpr (Capacity > 0) {
+        if constexpr (Capacity > 0u) {
             while (m_q.size() >= Capacity) {
                 m_cv.wait(lk);
                 if (m_q.size() >= Capacity) throw CancelledError{};
@@ -64,16 +63,16 @@ public:
         return getFront();
     }
 
-protected:
+private:
     T getFront() {
         auto t = std::move(m_q.front());
         m_q.pop();
         return t;
     }
 
-    mutable std::mutex m_mutex;
-    std::condition_variable m_cv;
     std::queue<T> m_q;
+    std::mutex m_mutex;
+    std::condition_variable m_cv;
 };
 
 }  // namespace details
@@ -83,7 +82,7 @@ class ThreadSafeQueue : public details::ThreadSafeQueueBase<T, 0u> {};
 
 template <typename T, u64 Capacity>
 class FixedSizeThreadSafeQueue : public details::ThreadSafeQueueBase<T, Capacity> {
-    static_assert(Capacity > 0);
+    static_assert(Capacity > 0u);
 };
 
 }  // namespace kstd

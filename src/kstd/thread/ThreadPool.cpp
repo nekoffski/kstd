@@ -9,9 +9,8 @@ ThreadPool::ThreadPool(u16 threadCount, u16 workStealingFactor) :
     m_workStealingFactor(workStealingFactor), m_nextWorkerId(0u),
     m_queues(threadCount) {
     m_workers.reserve(m_workerCount);
-    for (u16 i = 0; i < m_workerCount; ++i) {
+    for (u16 i = 0; i < m_workerCount; ++i)
         m_workers.emplace_back([&, i]() { startWorker(i); });
-    }
 }
 
 ThreadPool::~ThreadPool() { stop(); }

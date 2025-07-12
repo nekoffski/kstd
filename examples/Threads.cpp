@@ -56,8 +56,8 @@ int main() {
     kstd::u16 threads = 4u;
     kstd::ThreadPool tp{ threads };
 
-    // foo(tp);
-    // bar(tp);
+    foo(tp);
+    bar(tp);
     bar2(tp);
 
     return 0;
