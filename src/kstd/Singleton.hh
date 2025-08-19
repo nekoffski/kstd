@@ -7,7 +7,8 @@
 
 namespace kstd {
 
-template <typename T> class Singleton : public NonMovable, public NonCopyable {
+template <typename T>
+class Singleton : public virtual NonMovable, public virtual NonCopyable {
     inline static std::string className = getTypeName<T>();
 
 public:
