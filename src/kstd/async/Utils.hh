@@ -34,10 +34,12 @@ inline auto asyncSleep(
 
 class AsyncTimer {
 public:
-    template <typename Executor> AsyncTimer(const Executor& ex) : m_timer(ex) {}
+    template <typename Executor>
+    AsyncTimer(const Executor& ex) : m_timer(ex), m_terminated(false) {}
 
     Coro<void> sleep(std::chrono::nanoseconds duration);
     void cancel();
+    void terminate();
 
     template <typename Callback>
     void callLater(Callback&& callback, std::chrono::nanoseconds duration) {
@@ -47,6 +49,7 @@ public:
 
 private:
     boost::asio::steady_timer m_timer;
+    bool m_terminated;
 };
 
 Coro<void> asyncSleep(std::chrono::nanoseconds duration);

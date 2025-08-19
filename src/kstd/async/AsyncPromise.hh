@@ -2,11 +2,13 @@
 
 #include <boost/asio/experimental/channel.hpp>
 
+#include "kstd/Concepts.hh"
 #include "Core.hh"
 
 namespace kstd {
 
-template <typename T> class AsyncPromise {
+template <typename T>
+class AsyncPromise : public virtual NonCopyable, public virtual NonMovable {
     using Channel =
       boost::asio::experimental::channel<void(boost::system::error_code, T)>;
 

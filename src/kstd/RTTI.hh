@@ -5,9 +5,11 @@
 
 #include <boost/core/demangle.hpp>
 
+#include "kstd/Concepts.hh"
+
 namespace kstd {
 
-struct RTTI {
+struct RTTI : public virtual NonCopyable, public virtual NonMovable {
     virtual std::type_index getType() const = 0;
 
     template <typename T> bool is() const { return getType() == typeid(T); }

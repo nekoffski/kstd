@@ -24,10 +24,17 @@ Coro<void> asyncSleep(std::chrono::nanoseconds duration) {
 }
 
 Coro<void> AsyncTimer::sleep(std::chrono::nanoseconds duration) {
+    if (m_terminated) co_return;
+
     m_timer.expires_after(duration);
     co_await m_timer.async_wait(boost::asio::use_awaitable);
 }
 
 void AsyncTimer::cancel() { m_timer.cancel(); }
+
+void AsyncTimer::terminate() {
+    m_terminated = true;
+    m_timer.cancel();
+}
 
 }  // namespace kstd

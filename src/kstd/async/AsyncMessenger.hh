@@ -5,19 +5,19 @@
 
 #include "kstd/Core.hh"
 #include "kstd/Concepts.hh"
-#include "Core.hh"
 #include "AsyncMessage.hh"
+#include "Core.hh"
 
 namespace kstd {
 
-class AsyncMessenger {
+class AsyncMessenger : public virtual NonCopyable, public virtual NonMovable {
     static constexpr u64 channelSize = 32u;
 
     using Channel = boost::asio::experimental::channel<
       void(boost::system::error_code, std::unique_ptr<AsyncMessage>)>;
 
 public:
-    class Queue {
+    class Queue : public virtual NonCopyable, public virtual NonMovable {
         friend class AsyncMessenger;
 
         class SendProxy : public NonMovable, public NonCopyable {

@@ -8,12 +8,13 @@
 #include <memory>
 
 #include "kstd/Core.hh"
+#include "kstd/Concepts.hh"
 #include "kstd/containers/ThreadSafeQueue.hh"
 #include "Promise.hh"
 
 namespace kstd {
 
-class ThreadPool {
+class ThreadPool : public virtual NonCopyable, public virtual NonMovable {
     using Task = std::function<void()>;
 
     static constexpr u16 defaultWorkStealingFactor = 2u;

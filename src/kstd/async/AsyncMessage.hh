@@ -6,11 +6,12 @@
 
 #include <boost/asio/experimental/channel.hpp>
 
+#include "kstd/Concepts.hh"
 #include "AsyncPromise.hh"
 
 namespace kstd {
 
-class AsyncResponse {
+class AsyncResponse : public virtual NonCopyable, public virtual NonMovable {
 public:
     template <typename T> bool is() const { return getType() == typeid(T); }
 
