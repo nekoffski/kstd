@@ -21,7 +21,7 @@ public:
         emplace(std::forward<Args>(args)...);
     }
 
-    LocalPtr(LocalPtr&& rhs) : m_pointer(nullptr) {
+    LocalPtr(LocalPtr&& rhs) noexcept : m_pointer(nullptr) {
         resetBuffer();
 
         if (rhs.m_pointer) {
@@ -30,9 +30,8 @@ public:
         }
     }
 
-    LocalPtr& operator=(LocalPtr&& rhs) {
+    LocalPtr& operator=(LocalPtr&& rhs) noexcept {
         clear();
-        resetBuffer();
         m_pointer = nullptr;
 
         if (rhs.m_pointer) {

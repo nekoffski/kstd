@@ -56,9 +56,9 @@ public:
 
     explicit WithId() : m_id(createId()), m_shouldFree(true) {}
 
-    WithId(WithId&& oth) : m_id(oth.m_id) { oth.m_shouldFree = false; }
+    WithId(WithId&& oth) noexcept : m_id(oth.m_id) { oth.m_shouldFree = false; }
 
-    WithId& operator=(WithId&& oth) {
+    WithId& operator=(WithId&& oth) noexcept {
         free();
         m_id             = oth.m_id;
         oth.m_shouldFree = false;
