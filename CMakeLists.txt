@@ -76,6 +76,7 @@ install(
         ${SRC}/Enum.hh
         ${SRC}/Env.hh
         ${SRC}/Algorithms.hh
+        ${SRC}/Config.hh
     DESTINATION include/kstd)
 install(
     FILES 
