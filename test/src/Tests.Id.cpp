@@ -10,54 +10,54 @@ using namespace kstd;
 static constexpr Id8::Type value1 = 1;
 static constexpr Id8::Type value2 = 7;
 
-TEST(WithNameTests, nameConflict) {
-    struct Mutable : WithName<Mutable, "Mutable", false> {};
+TEST(NamedTests, nameConflict) {
+    struct Mutable : Named<Mutable, "Mutable", false> {};
     Mutable m{};
-    ASSERT_EQ(m.getName(), "Mutable_0");
-    ASSERT_EQ(m.getId(), 0);
+    ASSERT_EQ(m.name(), "Mutable_0");
+    ASSERT_EQ(m.id(), 0);
     m.setName("TestName");
-    ASSERT_EQ(m.getName(), "TestName");
+    ASSERT_EQ(m.name(), "TestName");
 }
 
-TEST(WithNameTests, mutableOverload) {
-    struct Mutable : WithName<Mutable, "Mutable", false> {};
+TEST(NamedTests, mutableOverload) {
+    struct Mutable : Named<Mutable, "Mutable", false> {};
     Mutable m{};
-    ASSERT_EQ(m.getName(), "Mutable_0");
+    ASSERT_EQ(m.name(), "Mutable_0");
     m.setName("Test");
-    ASSERT_EQ(m.getName(), "Test");
+    ASSERT_EQ(m.name(), "Test");
 }
 
-TEST(WithNameTests, constOverload) {
-    struct Const : WithName<Const, "Const"> {};
-    ASSERT_EQ(Const{}.getName(), "Const_0");
+TEST(NamedTests, constOverload) {
+    struct Const : Named<Const, "Const"> {};
+    ASSERT_EQ(Const{}.name(), "Const_0");
 }
 
-TEST(WithIdTests, basic) {
-    struct Foo : WithId<Foo> {};
+TEST(IdentifiableTests, basic) {
+    struct Foo : Identifiable<Foo> {};
 
     Foo f1;
-    ASSERT_EQ(f1.getId(), 0);
+    ASSERT_EQ(f1.id(), 0);
     Foo f2;
-    ASSERT_EQ(f2.getId(), 1);
+    ASSERT_EQ(f2.id(), 1);
 
     {
         Foo f3;
-        ASSERT_EQ(f3.getId(), 2);
+        ASSERT_EQ(f3.id(), 2);
     }
 
     Foo f4;
-    ASSERT_EQ(f4.getId(), 2);
+    ASSERT_EQ(f4.id(), 2);
 
     {
         Foo f5;
-        ASSERT_EQ(f5.getId(), 3);
+        ASSERT_EQ(f5.id(), 3);
 
         f4 = std::move(f5);
     }
 
-    EXPECT_EQ(f4.getId(), 3);
+    EXPECT_EQ(f4.id(), 3);
     Foo f6;
-    EXPECT_EQ(f6.getId(), 2);
+    EXPECT_EQ(f6.id(), 2);
 }
 
 TEST(WithUuidTests, basic) {}

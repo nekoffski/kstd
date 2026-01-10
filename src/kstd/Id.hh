@@ -50,24 +50,26 @@ private:
     Uuid m_uuid;
 };
 
-template <typename T> class WithId : public virtual kstd::NonCopyable {
+template <typename T> class Identifiable : public virtual kstd::NonCopyable {
 public:
     using Id = u64;
 
-    explicit WithId() : m_id(createId()), m_shouldFree(true) {}
+    explicit Identifiable() : m_id(createId()), m_shouldFree(true) {}
 
-    WithId(WithId&& oth) noexcept : m_id(oth.m_id) { oth.m_shouldFree = false; }
+    Identifiable(Identifiable&& oth) noexcept : m_id(oth.m_id) {
+        oth.m_shouldFree = false;
+    }
 
-    WithId& operator=(WithId&& oth) noexcept {
+    Identifiable& operator=(Identifiable&& oth) noexcept {
         free();
         m_id             = oth.m_id;
         oth.m_shouldFree = false;
         return *this;
     }
 
-    ~WithId() { free(); }
+    ~Identifiable() { free(); }
 
-    Id getId() const { return m_id; }
+    Id id() const { return m_id; }
 
 private:
     void free() {
@@ -98,27 +100,27 @@ private:
 };
 
 template <typename T, StringLiteral NameGenerator, bool Const = true>
-class WithName : public WithId<T> {
+class Named : public Identifiable<T> {
     inline const static std::string baseName = NameGenerator.value;
 
 public:
-    explicit WithName(std::optional<std::string> name = {}) :
+    explicit Named(std::optional<std::string> name = {}) :
         m_name(generateName(name)) {
         log::debug(
-          "Creating {} - id={} name='{}'", baseName, WithId<T>::getId(), m_name
+          "Creating {} - id={} name='{}'", baseName, Identifiable<T>::id(), m_name
         );
     }
 
-    ~WithName() {
+    ~Named() {
         log::debug(
-          "Destroying {} - id={} name='{}'", baseName, WithId<T>::getId(), m_name
+          "Destroying {} - id={} name='{}'", baseName, Identifiable<T>::id(), m_name
         );
     }
 
-    WithName(WithName&& oth)            = default;
-    WithName& operator=(WithName&& oth) = default;
+    Named(Named&& oth)            = default;
+    Named& operator=(Named&& oth) = default;
 
-    const std::string& getName() const { return m_name; }
+    const std::string& name() const { return m_name; }
 
     void setName(const std::string& name)
     requires(!Const)
@@ -135,12 +137,12 @@ private:
     std::string m_name;
 
     std::string generateName(std::optional<std::string> name) {
-        return name.value_or(fmt::format("{}_{}", baseName, WithId<T>::getId()));
+        return name.value_or(fmt::format("{}_{}", baseName, Identifiable<T>::id()));
     }
 };
 
 template <typename T>
-concept IsWithId = std::derived_from<T, WithId<T>>;
+concept IsIdentifiable = std::derived_from<T, Identifiable<T>>;
 
 template <typename T>
 requires std::is_integral_v<T>
